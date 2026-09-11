@@ -9,6 +9,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   basePath: "/chat",
   transpilePackages: ["@tessera/shared-ui", "@tessera/integration-store"],
+  eslint: {
+    // Lint đã chạy như bước CI riêng (`npm run lint` — .github/workflows/ci.yml); tắt lint trong
+    // `next build` vì môi trường build của Vercel (Root Directory riêng cho từng app) không luôn
+    // cài `eslint` (devDependency ở root, không thuộc closure install của app này).
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;
