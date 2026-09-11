@@ -37,10 +37,11 @@ tests/                      # Integration test giữa shell và module
 
 ## Tech Stack đã chốt
 
-Next.js (App Router) + TypeScript · Module Federation (`@module-federation/nextjs-mf`, dự phòng
-Next.js Multi-Zones) · TailwindCSS + shadcn-ui · Zustand · Axios · ESLint + Prettier ·
-Jest + React Testing Library · GitHub Actions · Vercel. Chi tiết: `docs/reference/UIT.SE.66 -
-Tech Stack.xlsx`.
+Next.js (App Router) + TypeScript · **Next.js Multi-Zones** (đã pivot từ Module Federation sau khi
+gặp lỗi runtime không khắc phục được — xem
+`docs/findings/R2-module-federation-nextjs-approuter.md`) · TailwindCSS + shadcn-ui · Zustand ·
+Axios · ESLint + Prettier · Jest + React Testing Library · GitHub Actions · Vercel. Chi tiết:
+`docs/reference/UIT.SE.66 - Tech Stack.xlsx`.
 
 ## Bắt đầu
 

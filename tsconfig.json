@@ -1,4 +1,4 @@
 {
   "files": [],
-  "references": [{ "path": "./packages/shared-ui" }]
+  "references": [{ "path": "./packages/shared-ui" }, { "path": "./packages/integration-store" }]
 }

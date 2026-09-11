@@ -7,7 +7,8 @@ Hướng dẫn cho Claude Code khi làm việc trong repository này.
 UIT.SE.66 — "Tìm hiểu kiến trúc Micro Frontend & ứng dụng với Next.js xây dựng UI Interactive
 cho AI Agent". Đồ án 1 (SE), 1 sinh viên (Nguyễn Tuấn Khang) đảm nhiệm toàn bộ vai trò
 PM/BA/Dev/QA, GVHD: ThS. Nguyễn Công Hoan. PoC gồm 1 Application Shell + 2 Micro Frontend module
-(Chat/Prompt, Tool-Invocation/Dashboard) ghép lại qua Module Federation.
+(Chat/Prompt, Tool-Invocation/Dashboard) ghép lại qua **Next.js Multi-Zones** (đã pivot từ Module
+Federation — xem `docs/findings/R2-module-federation-nextjs-approuter.md`).
 
 ## Bắt buộc đọc trước mọi task
 

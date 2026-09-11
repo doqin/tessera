@@ -1,0 +1,11 @@
+{
+  "name": "@tessera/integration-store",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Integration Layer — Zustand store dùng chung giữa Application Shell và các Micro Frontend module (sessionId, lastToolCall, navState)",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "zustand": "^5.0.15"
+  }
+}
