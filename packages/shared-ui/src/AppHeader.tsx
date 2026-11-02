@@ -1,8 +1,14 @@
+/**
+ * AppHeader — header cho Shell (BIOS-screen VGA look, dqcss).
+ * Sử dụng .dq-row cho cột ngang + inline style cho căn chỉnh giữa hai phần.
+ */
 export function AppHeader() {
   return (
-    <div className="flex items-center justify-between px-4 py-3">
-      <span className="text-lg font-semibold">AI Agent UI — Shell</span>
-      <span className="text-xs text-foreground/60">UIT.SE.66 PoC</span>
+    <div
+      className="dq-row"
+      style={{ justifyContent: "space-between", padding: "var(--dq-space-2) var(--dq-space-4)" }}
+    >
+      <span style={{ fontSize: "var(--dq-text-base)", fontWeight: 700 }}>AI Agent UI — Shell</span>
     </div>
   );
 }

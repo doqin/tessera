@@ -13,7 +13,7 @@ export default function ChatModule() {
   const { messages, submitPrompt } = useChatViewModel();
 
   return (
-    <Card className="flex h-full flex-col">
+    <Card className="dq-stack" style={{ flex: 1 }}>
       <ChatWindow messages={messages} />
       <PromptInput onSubmit={submitPrompt} />
     </Card>

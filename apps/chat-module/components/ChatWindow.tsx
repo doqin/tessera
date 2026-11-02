@@ -8,14 +8,27 @@ export interface ChatWindowProps {
 export function ChatWindow({ messages }: ChatWindowProps) {
   if (messages.length === 0) {
     return (
-      <div className="flex flex-1 items-center justify-center p-4 text-sm text-foreground/60">
+      <div
+        className="dq-stack"
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          padding: "var(--dq-space-4)",
+        }}
+      >
         Chưa có tin nhắn — nhập prompt bên dưới để bắt đầu.
       </div>
     );
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-2 overflow-y-auto p-2" role="log" aria-live="polite">
+    <div
+      className="dq-stack"
+      style={{ flex: 1, overflowY: "auto", padding: "var(--dq-space-2)" }}
+      role="log"
+      aria-live="polite"
+    >
       {messages.map((message) => (
         <MessageBubble key={message.id} message={message} />
       ))}

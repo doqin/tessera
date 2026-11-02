@@ -6,7 +6,7 @@ import ChatModule from "../components/ChatModule";
  */
 export default function Page() {
   return (
-    <div className="flex h-full flex-col">
+    <div className="dq-stack" style={{ height: "100%" }}>
       <ChatModule />
     </div>
   );

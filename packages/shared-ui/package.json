@@ -2,7 +2,7 @@
   "name": "@tessera/shared-ui",
   "private": true,
   "version": "0.1.0",
-  "description": "Shared design system (TailwindCSS/shadcn-ui) dùng chung cho Shell và mọi Micro Frontend module",
+  "description": "Shared design system (dqcss + theme Groq) dùng chung cho Shell và mọi Micro Frontend module",
   "main": "src/index.ts",
   "types": "src/index.ts"
 }

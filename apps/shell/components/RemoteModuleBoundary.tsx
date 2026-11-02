@@ -33,14 +33,38 @@ export class RemoteModuleBoundary extends Component<
   render() {
     if (this.state.error) {
       return (
-        <div role="alert" className="rounded-md border border-border p-6 text-sm">
-          <p className="font-semibold">
+        <div
+          role="alert"
+          className="dq-panel"
+          style={{
+            padding: "var(--dq-space-4)",
+            color: "var(--dq-color-fg)",
+            backgroundColor: "var(--dq-color-bg)",
+          }}
+        >
+          <p style={{ fontWeight: 700 }}>
             Không tải được module &ldquo;{this.props.moduleName}&rdquo;.
           </p>
-          <p className="mt-1 text-foreground/70">{this.state.error.message}</p>
+          <p
+            style={{
+              marginTop: "var(--dq-space-1)",
+              color: "var(--dq-color-muted)",
+            }}
+          >
+            {this.state.error.message}
+          </p>
           <button
             type="button"
-            className="mt-3 rounded-md bg-primary px-3 py-1.5 text-primary-foreground"
+            style={{
+              marginTop: "var(--dq-space-3)",
+              padding: "var(--dq-space-2) var(--dq-space-4)",
+              border: "2px solid var(--dq-color-primary)",
+              background: "var(--dq-color-primary)",
+              color: "var(--dq-color-primary-fg)",
+              fontWeight: 600,
+              borderRadius: 0,
+              cursor: "pointer",
+            }}
             onClick={() => window.location.reload()}
           >
             Tải lại trang

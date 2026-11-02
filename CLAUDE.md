@@ -43,7 +43,7 @@ specs/                      # Spec Kit — 1 thư mục / 1 module, chứa spec.
   002-chat-module/
   003-dashboard-module/
 apps/                       # Next.js apps độc lập (shell, chat-module, dashboard-module) — D2
-packages/shared-ui/         # Design system dùng chung (TailwindCSS/shadcn-ui)
+packages/shared-ui/         # Design system dùng chung (dqcss — `@doqin/dqcss`)
 tools/llm-trial/            # Script thử kết nối LLM API bằng dữ liệu mẫu
 docs/                       # Tài liệu tham khảo (D1–D3, Tech Stack, Project Charter)
 tests/                      # Integration test giữa shell và module
@@ -64,12 +64,12 @@ tests/                      # Integration test giữa shell và module
   làm hỏng `@module-federation/enhanced`), `styled-jsx@5.1.1`. Nâng bản nào cũng phải build lại cả
   2 app và kiểm bằng browser thật.
 - Next.js 13.5 chỉ nhận `next.config.js` và `postcss.config.js` (CJS) — không dùng `.ts`/`.mjs`
-  (`postcss.config.mjs` làm Tailwind v4 âm thầm không chạy). Font dùng `Inter`/`Roboto_Mono`
+  . Font dùng `Inter`/`Roboto_Mono`
   (không có Geist).
 - `nextjs-mf` chính thức không hỗ trợ App Router; `next.config.js` của 2 app có workaround (bỏ
   guard `appDirEnabled` tạm thời, federation chỉ ở client compiler, chia sẻ React vendored của
   Next). Remote chỉ render phía client (`next/dynamic` + `ssr: false`), không SSR.
-- Shell `@source` thư mục `components` của chat-module trong `globals.css` để sinh CSS cho remote.
+- Style dùng `@doqin/dqcss` (`@import "@doqin/dqcss"` trong `globals.css` của mỗi app) — không còn Tailwind/PostCSS.
 - Ổ đĩa exFAT không chạy được `npm install` (npm workspaces cần symlink/junction) — dùng ổ NTFS.
 
 ## Khi nào dừng lại và hỏi

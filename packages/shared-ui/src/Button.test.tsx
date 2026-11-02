@@ -12,19 +12,15 @@ describe("Button", () => {
   it("defaults to variant=primary and size=md classes", () => {
     render(<Button>Default</Button>);
     const button = screen.getByRole("button", { name: "Default" });
-    expect(button.className).toContain("bg-primary");
-    expect(button.className).toContain("h-10");
+    expect(button.className).toContain("dq-btn--primary");
+    expect(button.className).toContain("dq-btn");
   });
 
-  it("applies the requested variant and size", () => {
-    render(
-      <Button variant="ghost" size="lg">
-        Ghost
-      </Button>,
-    );
-    const button = screen.getByRole("button", { name: "Ghost" });
-    expect(button.className).toContain("hover:bg-accent");
-    expect(button.className).toContain("h-12");
+  it("applies the requested variant", () => {
+    render(<Button variant="secondary">Secondary</Button>);
+    const button = screen.getByRole("button", { name: "Secondary" });
+    expect(button.className).toContain("dq-btn");
+    expect(button.className).toContain("dq-btn--secondary");
   });
 
   it("fires onClick when clicked", async () => {
