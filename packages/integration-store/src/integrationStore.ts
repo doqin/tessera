@@ -24,11 +24,10 @@ const noopStorage: StateStorage = {
 };
 
 /**
- * Persist qua localStorage — bắt buộc sau khi pivot sang Next.js Multi-Zones
- * (docs/findings/R2-module-federation-nextjs-approuter.md §10): mỗi lần điều hướng băng qua zone
- * là một lần nạp lại toàn bộ runtime JS (store in-memory bị reset), nhưng localStorage vẫn dùng
- * chung vì các zone cùng origin trình duyệt. Zone tải sau HYDRATE được `lastToolCall`/`navState`
- * gần nhất lúc mount — không còn live-reactive trong khi đang mounted như thiết kế MF ban đầu.
+ * Shell và các remote Module Federation dùng chung 1 instance store (khai báo `shared` singleton
+ * trong next.config.js của từng app). Persist qua localStorage để giữ `lastToolCall`/`navState`
+ * khi tải lại trang và khi một remote chạy độc lập (giữ từ giai đoạn Multi-Zones, khi mỗi zone là
+ * một runtime JS riêng nên bắt buộc — docs/findings/R2-module-federation-nextjs-approuter.md §10).
  * `noopStorage` tránh truy cập `localStorage` lúc render phía server (không tồn tại ở Node).
  */
 export const useIntegrationStore = create<IntegrationState>()(

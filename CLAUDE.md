@@ -7,8 +7,12 @@ Hướng dẫn cho Claude Code khi làm việc trong repository này.
 UIT.SE.66 — "Tìm hiểu kiến trúc Micro Frontend & ứng dụng với Next.js xây dựng UI Interactive
 cho AI Agent". Đồ án 1 (SE), 1 sinh viên (Nguyễn Tuấn Khang) đảm nhiệm toàn bộ vai trò
 PM/BA/Dev/QA, GVHD: ThS. Nguyễn Công Hoan. PoC gồm 1 Application Shell + 2 Micro Frontend module
-(Chat/Prompt, Tool-Invocation/Dashboard) ghép lại qua **Next.js Multi-Zones** (đã pivot từ Module
-Federation — xem `docs/findings/R2-module-federation-nextjs-approuter.md`).
+(Chat/Prompt, Tool-Invocation/Dashboard) ghép lại qua **Module Federation**
+(`@module-federation/nextjs-mf`) trên **Next.js 13.5.11** (App Router) — Shell là host, mỗi module
+là remote. Next.js Multi-Zones là phương án dự phòng (R2) đã từng được dùng tạm; Next.js 14/15
+**không** dùng được với MF tại thời điểm này. Mọi workaround, ràng buộc phiên bản và lý do:
+`docs/findings/R2-module-federation-nextjs-approuter.md` (đặc biệt §13) — đọc trước khi nâng
+Next.js/React/webpack hoặc sửa `next.config.js`.
 
 ## Bắt buộc đọc trước mọi task
 
@@ -52,6 +56,21 @@ tests/                      # Integration test giữa shell và module
 - UIT.SE.66-D2-TechStackFoundation (Tech Stack + môi trường)
 - UIT.SE.66-D3-ProblemSolutionModel (kiến trúc MFE, luồng runtime, MVVM)
 - UIT.SE.66 - Tech Stack.xlsx (bảng tech stack đã chốt)
+
+## Ràng buộc kỹ thuật cần nhớ (Module Federation + Next.js 13.5.11)
+
+- **Ghim phiên bản, không nâng tự ý:** `next@13.5.11`, `react`/`react-dom@18.2.0`,
+  `@module-federation/nextjs-mf@8.8.76`, `webpack@5.99.9` (ghim cả ở root và từng app — `5.112+`
+  làm hỏng `@module-federation/enhanced`), `styled-jsx@5.1.1`. Nâng bản nào cũng phải build lại cả
+  2 app và kiểm bằng browser thật.
+- Next.js 13.5 chỉ nhận `next.config.js` và `postcss.config.js` (CJS) — không dùng `.ts`/`.mjs`
+  (`postcss.config.mjs` làm Tailwind v4 âm thầm không chạy). Font dùng `Inter`/`Roboto_Mono`
+  (không có Geist).
+- `nextjs-mf` chính thức không hỗ trợ App Router; `next.config.js` của 2 app có workaround (bỏ
+  guard `appDirEnabled` tạm thời, federation chỉ ở client compiler, chia sẻ React vendored của
+  Next). Remote chỉ render phía client (`next/dynamic` + `ssr: false`), không SSR.
+- Shell `@source` thư mục `components` của chat-module trong `globals.css` để sinh CSS cho remote.
+- Ổ đĩa exFAT không chạy được `npm install` (npm workspaces cần symlink/junction) — dùng ổ NTFS.
 
 ## Khi nào dừng lại và hỏi
 

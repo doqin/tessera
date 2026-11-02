@@ -1,31 +1,27 @@
 # Plan: Chat/Prompt Module (002-chat-module)
 
-- **Nguồn:** `spec.md` (đã Clarify + Checklist §9–10, Amendment §11), `UIT.SE.66-D2-TechStackFoundation`
+- **Nguồn:** `spec.md` (đã Clarify + Checklist §9–10, §11), `UIT.SE.66-D2-TechStackFoundation`
   §4–7, `UIT.SE.66-D3-ProblemSolutionModel` §3, §5, §6, §7, `specs/001-shell-app/plan.md` (hợp đồng
-  Multi-Zones/store phía Shell).
+  Module Federation/store phía Shell).
 - **Trạng thái:** Implemented (foundation, mock service).
-- **Lịch sử quan trọng:** Đã pivot từ Module Federation sang Next.js Multi-Zones cùng đợt với
-  `specs/001-shell-app` — xem `docs/findings/R2-module-federation-nextjs-approuter.md`. Tài liệu
-  này mô tả kiến trúc sau pivot.
-
-> **Nhánh thay thế `feature/next-13-module-federation`:** Chat module là **remote** Module
-> Federation (expose `./ChatModule`, không còn `basePath: "/chat"`, không còn `ZoneNav`); vẫn chạy
-> độc lập ở :3001 để dev/test. Xem `specs/001-shell-app/plan.md` và findings doc §13.
+- **Lịch sử quan trọng:** Module Federation (kế hoạch gốc) → tạm Multi-Zones (Next.js 15.5) →
+  quay lại Module Federation trên Next.js 13.5.11 (kiến trúc hiện tại). Xem
+  `specs/001-shell-app/spec.md` §11 và `docs/findings/R2-module-federation-nextjs-approuter.md` §13.
 
 ## 1. Kiến trúc tổng quan (MVVM — D3 §6)
 
 ```
 apps/chat-module/
-├── next.config.ts             basePath: "/chat" (Next.js Multi-Zones — zone thứ cấp)
+├── next.config.js             NextFederationPlugin: exposes ./ChatModule + shared (client-only)
+├── postcss.config.js          Tailwind v4 (phải là .js — Next 13.5 không nhận .mjs)
 ├── app/
-│   ├── layout.tsx              AppHeader + ZoneNav (packages/shared-ui) — chrome giống hệt Shell
-│   └── page.tsx                trang chính của zone (được Shell proxy tới qua rewrites())
+│   ├── layout.tsx              AppHeader (packages/shared-ui) — chrome cho trang chạy độc lập
+│   └── page.tsx                trang chạy độc lập (dev/test riêng ở :3001); Shell không dùng trang này
 ├── components/                 View — component thuần, nhận props
-│   ├── ChatModule.tsx           compose ChatWindow + PromptInput, "use client"
+│   ├── ChatModule.tsx           ĐƯỢC EXPOSE qua MF; compose ChatWindow + PromptInput, "use client"
 │   ├── ChatWindow.tsx
 │   ├── MessageBubble.tsx
-│   ├── PromptInput.tsx
-│   └── ZoneNav.tsx              sync "/chat" vào integrationStore.navState, render AppNav
+│   └── PromptInput.tsx
 ├── hooks/                      ViewModel
 │   └── useChatViewModel.ts     state message list, gọi Model, cập nhật integrationStore.lastToolCall
 ├── services/                   Model
@@ -34,16 +30,21 @@ apps/chat-module/
     └── chat.ts                 Message, ToolCall, ChatState
 ```
 
-## 2. Next.js Multi-Zones — cấu hình zone thứ cấp
+## 2. Module Federation — cấu hình remote
 
-- `basePath: "/chat"` trong `next.config.ts` — mọi route (`app/page.tsx` → `/`) và static asset
-  của app này tự động phục vụ dưới tiền tố `/chat`, khớp đích `rewrites()` của Shell
-  (`specs/001-shell-app/plan.md` §2). Không cần `assetPrefix` riêng.
-- `ChatModule.tsx` vẫn là Client Component (`"use client"`) — không đổi so với thiết kế ban đầu,
-  lý do khác: cần `useState`/hooks cho ViewModel, không liên quan ràng buộc MF/App Router nữa.
-- `app/layout.tsx` tự render `AppHeader` + `ZoneNav` (từ `packages/shared-ui`) — zone này chịu
-  trách nhiệm chrome của chính nó (Multi-Zones: mỗi zone là 1 document riêng, không có Shell
-  "bao" quanh nó ở tầng React runtime như Module Federation từng dự kiến).
+- `apps/chat-module/next.config.js`: `NextFederationPlugin({ name: "chat_module", filename:
+"static/chunks/remoteEntry.js", exposes: { "./ChatModule": "./components/ChatModule.tsx" },
+shared: ... })`. Cùng nền tảng/phiên bản/workaround với Shell (Next.js 13.5.11, `webpack` 5.99.9,
+  bỏ guard `appDirEnabled` tạm thời, **chỉ federation ở client compiler**, `shared` trỏ vào React
+  vendored của Next + `@tessera/integration-store` + `zustand` singleton) — chi tiết và lý do:
+  `specs/001-shell-app/plan.md` §2, findings doc §13.
+- `ChatModule.tsx` là Client Component (`"use client"`) — bắt buộc vì Shell nạp client-only
+  (`ssr: false`) và vì cần `useState`/hooks cho ViewModel.
+- Không còn `basePath`/`ZoneNav` (của giai đoạn Multi-Zones). Chrome (header/sidebar) do Shell
+  chịu trách nhiệm; `app/layout.tsx` của module chỉ phục vụ trang chạy độc lập.
+- Remote chunk không mang CSS: Shell `@source` thư mục `components/` của module này trong
+  `globals.css` để sinh utility class — **thêm class Tailwind mới trong `components/` là đủ, nhưng
+  đổi tên/di chuyển thư mục `components/` phải cập nhật `@source` của Shell**.
 
 ## 3. Model — `chatService.ts`
 
@@ -83,11 +84,10 @@ apps/chat-module/
 
 ## 7. Phạm vi phiên "D2 Foundation Setup" vs. giai đoạn Thực hiện
 
-Phiên này (foundation): scaffold app, cấu hình zone Multi-Zones (`basePath`), `ChatModule` có UI
-thật (ChatWindow/PromptInput/MessageBubble) nhưng **service mock cố định**, đủ để Shell proxy
-`/chat` sang đúng nội dung (D2 §7 mục 3, đã đổi cơ chế nhưng vẫn đạt đúng mục tiêu "load module
-thành công") và chứng minh pipeline hoạt động — đã verify bằng browser thật (dev + production
-build).
+Phiên này (foundation): scaffold app, cấu hình remote Module Federation, `ChatModule` có UI thật
+(ChatWindow/PromptInput/MessageBubble) nhưng **service mock cố định**, đủ để Shell nạp `/chat` từ
+remote (D2 §7 mục 3 — "load remote thành công") và chứng minh pipeline hoạt động — đã verify bằng
+browser thật (dev + production build, gồm gửi prompt qua remote ghi `lastToolCall`).
 
 Giai đoạn Thực hiện (sau, 21/11/2026): nối `chatService` với Groq API thật (theo mẫu
 `tools/llm-trial`), streaming thật, xử lý timeout/lỗi thật theo Clarify §9 — xem `tasks.md` phần

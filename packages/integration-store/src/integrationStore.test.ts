@@ -41,7 +41,7 @@ describe("useIntegrationStore", () => {
     expect(useIntegrationStore.getState().navState).toEqual({ currentRoute: "/chat" });
   });
 
-  it("persists lastToolCall to localStorage so a fresh store instance rehydrates it (simulates a Multi-Zones reload)", () => {
+  it("persists lastToolCall to localStorage so a fresh store instance rehydrates it (simulates a page reload / standalone remote)", () => {
     const toolCall = { id: "p1", name: "persisted_tool", params: {}, calledAt: "now" };
     useIntegrationStore.getState().setLastToolCall(toolCall);
 

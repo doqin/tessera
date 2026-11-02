@@ -10,5 +10,10 @@ Tham khảo trước khi viết spec: UIT.SE.66-D3 §3 (Tool-Invocation/Dashboar
 thị tool Agent đã gọi, tham số, kết quả trả về) và §7 (nhận `lastToolCall` từ global store để
 re-render).
 
+Tích hợp dự kiến: remote Module Federation thứ hai (`apps/dashboard-module`, :3002) mà Shell nạp ở
+route `/dashboard`, theo đúng mô hình của `apps/chat-module` (xem `specs/002-chat-module/plan.md`
+và `docs/findings/R2-module-federation-nextjs-approuter.md` §13). Hiện `/dashboard` của Shell là
+placeholder tĩnh.
+
 Khi viết, tạo tại đây: `spec.md`, sau đó `plan.md`, `tasks.md` theo đúng thứ tự quy trình SDD ở
 `.specify/constitution.md` §8.

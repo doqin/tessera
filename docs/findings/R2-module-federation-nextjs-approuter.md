@@ -9,8 +9,11 @@
   cụ thể cho rủi ro R2 đã **xảy ra thật** và mitigation đã được kích hoạt đúng quy trình đề ra.
   Nội dung này dùng được trực tiếp cho phần "Risk Management" / "Bài học kinh nghiệm" của báo cáo
   đồ án.
-- **Kết quả cuối:** Pivot sang **Next.js Multi-Zones** (phương án dự phòng đã chốt sẵn ở D2 §3) —
-  xem hệ quả kiến trúc ở mục 8.
+- **Kết quả (cập nhật — đọc phần này trước):** lần thử trên Next.js 15.5 (mục 1–12) thất bại và
+  dẫn tới pivot tạm sang **Next.js Multi-Zones** (phương án dự phòng D2 §3). Sau đó **thử lại trên
+  Next.js 13.5.11 thành công** (mục 13), nên repo đã **quay lại Module Federation** (hạ cấp Next.js);
+  Multi-Zones không còn là kiến trúc hiện hành, chỉ còn trong lịch sử git (commit `f942392`). Các
+  mục 8–11 mô tả hệ quả của giai đoạn Multi-Zones đó — giữ lại làm bằng chứng/lịch sử.
 
 ## 1. Bối cảnh
 
@@ -314,18 +317,20 @@ nhật `spec.md`/`plan.md` trước khi triển khai.
 
 ### 13.7 Đánh giá
 
-Quyết định pivot sang Multi-Zones ở mục 9 vẫn hợp lý trong bối cảnh lúc đó (Next 15.5, cấu hình
-chưa tìm ra). Phụ lục này **không** đảo ngược quyết định đó, chỉ bổ sung bằng chứng rằng Module
-Federation + App Router không phải "không thể" mà là "khả thi nhưng mong manh": phải hạ phiên bản,
-phải vượt guard của plugin, và phụ thuộc vào chi tiết nội bộ (cờ `appDirEnabled`, bản React vendored
-của Next) có thể vỡ ở bản cập nhật tiếp theo. Với đồ án này, đây cũng là minh chứng bổ sung cho giá trị
-của việc có phương án dự phòng (D2 §3) thay vì phụ thuộc vào một giải pháp duy nhất.
+Quyết định pivot sang Multi-Zones ở mục 9 là hợp lý trong bối cảnh lúc đó (Next 15.5, cấu hình
+chưa tìm ra). Phụ lục này bổ sung bằng chứng rằng Module Federation + App Router không phải "không
+thể" mà là "khả thi nhưng mong manh": phải hạ phiên bản, phải vượt guard của plugin, và phụ thuộc
+vào chi tiết nội bộ (cờ `appDirEnabled`, bản React vendored của Next) có thể vỡ ở bản cập nhật tiếp
+theo. **Quyết định hiện tại (khi merge vào `main`): dùng Module Federation trên Next.js 13.5.11**,
+chấp nhận các đánh đổi ở 13.4/13.8; Multi-Zones là phương án dự phòng nếu Module Federation hỏng khi
+nâng phiên bản. Với đồ án này, đây cũng là minh chứng cho giá trị của việc có phương án dự phòng (D2
+§3): có lối thoát khi MF thất bại, và có thể quay lại phương án chính khi tìm ra cách.
 
-### 13.8 Port toàn bộ dự án sang Next.js 13.5.11 (nhánh `feature/next-13-module-federation`)
+### 13.8 Port toàn bộ dự án sang Next.js 13.5.11 (nhánh `feature/next-13-module-federation`, merge vào `main`)
 
 Sau spike, toàn bộ `apps/shell` + `apps/chat-module` được port sang Next.js 13.5.11 / React 18.2.0 /
-`@module-federation/nextjs-mf@8.8.76` trên nhánh riêng (`main` vẫn là phương án Multi-Zones). Kiến
-trúc trên nhánh: Shell (host) có route `/chat` nạp `chat_module/ChatModule` qua Module Federation
+`@module-federation/nextjs-mf@8.8.76` (trước đó `main` là phương án Multi-Zones trên Next.js 15.5;
+nhánh này được merge để thay thế). Kiến trúc: Shell (host) có route `/chat` nạp `chat_module/ChatModule` qua Module Federation
 (client-only, `next/dynamic` + `ssr: false`), Chat module (remote) chạy độc lập ở :3001 và expose
 `./ChatModule`; `@tessera/integration-store` + `zustand` + React vendored chia sẻ singleton.
 
@@ -335,7 +340,15 @@ trúc trên nhánh: Shell (host) có route `/chat` nạp `chat_module/ChatModule
 (không reload trang — khôi phục FR2/FR3/NFR2 gốc), gửi prompt qua remote cập nhật `lastToolCall` vào
 store dùng chung, tắt server remote thì Shell hiển thị fallback rõ ràng (FR5/AC5).
 
-**Khác biệt so với `main` / workaround phát sinh thêm khi port đầy đủ (ngoài 13.2):**
+**Kiểm chứng store singleton (browser, 2026-11-03):** `window.__FEDERATION__.__INSTANCES__` có 2
+instance (`shell`, `chat_module`) cùng trỏ tới một `shareScopeMap.default`; chỉ tồn tại một entry
+`@tessera/integration-store@0.1.0` (`from: "shell"`, `loaded: true`) và một entry
+`zustand@5.0.15`. Sau khi Shell ghi `navState = "/chat"` và remote gửi prompt ghi `lastToolCall`,
+cùng một store state chứa cả hai giá trị. Điều này xác nhận Shell và remote dùng chung **một
+instance** store; phần re-render live khi một component khác đọc `lastToolCall` vẫn chờ Dashboard /
+integration test (T016).
+
+**Khác biệt so với giai đoạn Multi-Zones / workaround phát sinh thêm khi port đầy đủ (ngoài 13.2):**
 
 1. **Next.js 13.5 không nhận `next.config.ts` / `postcss.config.mjs`** — đổi thành `.js` (CJS).
    Với `postcss.config.mjs`, Tailwind v4 âm thầm không chạy (trang không có style, không báo lỗi).

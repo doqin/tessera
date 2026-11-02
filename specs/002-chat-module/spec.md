@@ -1,7 +1,7 @@
 # Spec: Chat/Prompt Module (002-chat-module)
 
-- **Status:** Implemented (foundation, mock service) — pivot sang Next.js Multi-Zones, xem §11
-  Amendment và `specs/001-shell-app/spec.md` §11
+- **Status:** Implemented (foundation, mock service) — remote Module Federation trên Next.js
+  13.5.11, xem §11 và `specs/001-shell-app/spec.md` §11
 - **Liên quan:** UIT.SE.66-D3 §3–4 (Chat/Prompt module, luồng runtime), UIT.SE.66-D1 §4,
   UIT.SE.66-D2 (Tech Stack, AI integration)
 
@@ -21,8 +21,8 @@ prompt và xem phản hồi streaming, bao gồm cả khi Agent gọi tool.
 - Hiển thị phản hồi của Agent dạng streaming (tăng dần theo chunk/token), không đợi full response.
 - Khi phản hồi có tool-call, publish sự kiện/cập nhật `lastToolCall` trong global store để
   Dashboard module tiêu thụ.
-- Đóng gói module thành 1 zone độc lập (Next.js Multi-Zones — pivot từ Module Federation, §11),
-  Shell route `/chat` sang zone này qua `rewrites()`.
+- Đóng gói module thành 1 **remote Module Federation** độc lập (expose `./ChatModule`), Shell nạp
+  lúc runtime ở route `/chat`.
 
 ### Ngoài phạm vi (Exclusions — Project Charter)
 
@@ -37,16 +37,15 @@ prompt và xem phản hồi streaming, bao gồm cả khi Agent gọi tool.
 - **FR3:** Module PHẢI hiển thị phản hồi của Agent dạng streaming khi API hỗ trợ streaming.
 - **FR4:** Khi response chứa tool-call, Module PHẢI cập nhật `lastToolCall` trong Zustand store
   dùng chung (Integration Layer).
-- **FR5 (amended, §11):** Module PHẢI có thể build/deploy độc lập như một zone Next.js riêng
-  (Multi-Zones), không phụ thuộc trực tiếp vào internal của Shell hay Dashboard module — chỉ dùng
-  chung `packages/shared-ui` và `packages/integration-store` qua npm workspace.
+- **FR5:** Module PHẢI build/deploy độc lập như một remote Module Federation riêng (expose
+  `./ChatModule`), không phụ thuộc trực tiếp vào internal của Shell hay Dashboard module — chỉ dùng
+  chung `packages/shared-ui` và `packages/integration-store` qua npm workspace. Module vẫn chạy được
+  độc lập (dev/test riêng).
 
 ## 4. Non-Functional Requirements
 
-- **NFR1–NFR6 (amended, §11):** như spec Shell app — First Load <3s, Lighthouse ≥80, responsive,
-  TS strict + lint pass, coverage ≥70%. Ngưỡng <300ms chỉ áp dụng điều hướng trong cùng zone Chat
-  module (không áp dụng cho lượt băng từ Shell sang zone này — xem
-  `specs/001-shell-app/spec.md` NFR2 amended).
+- **NFR1–NFR6:** như spec Shell app — First Load <3s, điều hướng <300ms (không reload), Lighthouse
+  ≥80, responsive, TS strict + lint pass, coverage ≥70% (xem `specs/001-shell-app/spec.md`).
 - **NFR7:** Không đưa dữ liệu cá nhân/nhạy cảm thật vào request gửi LLM API — chỉ dữ liệu mẫu
   (NDA, constitution §5).
 
@@ -58,9 +57,9 @@ prompt và xem phản hồi streaming, bao gồm cả khi Agent gọi tool.
   streaming (tăng dần), không xuất hiện toàn bộ cùng lúc.
 - **AC3:** Given response mock chứa payload tool-call, when nhận được, then `lastToolCall` trong
   store dùng chung được cập nhật trong cùng chu kỳ render.
-- **AC4 (amended, §11):** Given module được build độc lập như 1 zone (`basePath: "/chat"`), when
-  deploy và Shell cấu hình `rewrites()` trỏ tới zone này, then người dùng truy cập `/chat` từ Shell
-  thấy đúng nội dung module mà Shell không cần import internal của module.
+- **AC4:** Given module được build như remote Module Federation, when Shell cấu hình `remotes` trỏ
+  tới `remoteEntry.js` của module, then người dùng truy cập `/chat` từ Shell thấy đúng nội dung
+  module mà Shell không cần import internal của module.
 - **AC5:** Given chạy Unit test, when thực thi, then View và ViewModel (MVVM, D3 §6) được test
   tách biệt, đạt coverage ≥70%.
 
@@ -72,8 +71,7 @@ prompt và xem phản hồi streaming, bao gồm cả khi Agent gọi tool.
 
 ## 7. Dependencies / References
 
-- Tech stack: Next.js (App Router) + TypeScript, **Next.js Multi-Zones** (đã pivot từ Module
-  Federation — §11), TailwindCSS/shadcn-ui, Zustand, Axios/fetch, Groq API (mặc định, free tier) /
+- Tech stack: Next.js 13.5.11 (App Router) + TypeScript, **Module Federation** (§11), TailwindCSS/shadcn-ui, Zustand, Axios/fetch, Groq API (mặc định, free tier) /
   OpenAI API / Claude API (production-target) — dữ liệu mẫu/dummy — UIT.SE.66-D2 §4.
 - Kiến trúc: UIT.SE.66-D3 §3–7 (mô hình 3 lớp, MVVM, mô hình chia sẻ state — ví dụ cụ thể mục 7
   minh hoạ đúng luồng Chat → Dashboard qua `lastToolCall`).
@@ -111,10 +109,11 @@ spec này qua Clarify + Checklist. Chưa thực hiện Implement khi thiếu `pl
       lưu trữ lịch sử bền vững.
 - [x] Sẵn sàng chuyển sang bước Plan.
 
-## 11. Amendment (sau Implement) — pivot sang Next.js Multi-Zones
+## 11. Cơ chế ghép nối với Shell
 
-Cùng đợt pivot với `specs/001-shell-app/spec.md` §11 — chi tiết đầy đủ tại
-`docs/findings/R2-module-federation-nextjs-approuter.md`. FR5, NFR1–NFR6, AC4 ở trên đã sửa trực
-tiếp ("amended, §11"). Module vẫn build/deploy độc lập đúng tinh thần ban đầu (FR5) — chỉ đổi cơ
-chế ghép nối với Shell (route-based qua `basePath`/`rewrites()` thay vì Module Federation remote
-runtime import).
+Chat module là **remote Module Federation** trên Next.js 13.5.11 (`@module-federation/nextjs-mf`).
+Giai đoạn Next.js 15.5 từng phải tạm chuyển sang Multi-Zones (`basePath`/`rewrites()`) vì Module
+Federation không chạy được; sau khi thử lại thành công trên 13.5.11, repo quay lại Module Federation
+— toàn bộ lịch sử quyết định, đánh đổi và hạn chế (chỉ render phía client, workaround config…) ở
+`specs/001-shell-app/spec.md` §11 và `docs/findings/R2-module-federation-nextjs-approuter.md` §13.
+FR5/AC4 ở trên mô tả đúng cơ chế hiện tại.
