@@ -31,7 +31,7 @@
 - Tech Stack đã chốt: Next.js 13.5.11 (App Router, ghim phiên bản — Module Federation chưa chạy
   được trên Next.js 14/15, xem `docs/findings/R2-module-federation-nextjs-approuter.md` §13) +
   React 18.2 + TypeScript, Module Federation (`@module-federation/nextjs-mf` 8.8.76, dự phòng:
-  Next.js Multi-Zones), TailwindCSS + shadcn-ui,
+  Next.js Multi-Zones), dqcss (`@doqin/dqcss`, BIOS-screen look; thay TailwindCSS + shadcn-ui),
   Zustand, Axios, Groq API (mặc định, free tier) / OpenAI API / Claude API (production-target),
   ESLint + Prettier, Jest + RTL, GitHub Actions, Vercel.
 

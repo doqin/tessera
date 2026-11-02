@@ -1,0 +1,55 @@
+/* Groq-inspired palette cho dqcss: cam Groq (#F55036) làm primary, teal (#2EC4B6) làm secondary, trên nền xám ấm.
+ * Import SAU "@doqin/dqcss" để ghi đè token. Dark mode: <html data-theme="dark">. */
+:root {
+  --dq-color-page: #ebe9e6;
+  --dq-color-bg: #fff;
+  --dq-color-fg: #0d0d0d;
+  --dq-color-muted: #55524e;
+  --dq-color-border: #d8d5d0;
+  --dq-color-primary: #f55036;
+  --dq-color-primary-fg: #0d0d0d;
+  --dq-color-link: #c2321d;
+  --dq-color-secondary: #2ec4b6;
+  --dq-color-secondary-fg: #0d0d0d;
+  --dq-color-success: #0a7a3d;
+  --dq-color-warning: #a65f00;
+  --dq-color-danger: #b3001b;
+  --dq-color-danger-text: #7a0012;
+  --dq-color-focus: #2563eb;
+  --dq-shadow-color: #0d0d0d;
+  --dq-shadow-offset: 4px;
+  --tessera-chrome-bg: #fff;
+  --tessera-chrome-fg: #0d0d0d;
+}
+
+:root[data-theme="dark"] {
+  --dq-color-page: #0d0d0d;
+  --dq-color-bg: #161513;
+  --dq-color-fg: #f4f2ef;
+  --dq-color-muted: #a8a49e;
+  --dq-color-border: #2f2d2a;
+  --dq-color-primary: #f55036;
+  --dq-color-primary-fg: #0d0d0d;
+  --dq-color-link: #ff7a63;
+  --dq-color-secondary: #2ec4b6;
+  --dq-color-secondary-fg: #0d0d0d;
+  --dq-color-success: #4ade80;
+  --dq-color-warning: #fbbf24;
+  --dq-color-danger: #ff6b7d;
+  --dq-color-danger-text: #ff6b7d;
+  --dq-color-focus: #60a5fa;
+  --dq-shadow-color: #000;
+  --tessera-chrome-bg: #161513;
+  --tessera-chrome-fg: #f4f2ef;
+}
+
+/* Header (Layout): nền sáng, viền primary + bóng đổ cứng như panel; link active/hover dùng secondary (teal). */
+.dq-navbar {
+  background: var(--tessera-chrome-bg);
+  color: var(--tessera-chrome-fg);
+}
+
+header.dq-navbar {
+  border-bottom: var(--dq-border-width) solid var(--dq-color-primary);
+  box-shadow: 0 var(--dq-shadow-offset) 0 var(--dq-shadow-color);
+}

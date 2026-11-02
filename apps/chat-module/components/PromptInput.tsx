@@ -18,13 +18,22 @@ export function PromptInput({ onSubmit }: PromptInputProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 border-t border-border p-2">
+    <form
+      onSubmit={handleSubmit}
+      className="dq-row"
+      style={{
+        gap: "var(--dq-space-2)",
+        padding: "var(--dq-space-2)",
+        borderTop: "2px solid var(--dq-color-border)",
+      }}
+    >
       <input
+        className="dq-input"
+        style={{ flex: 1 }}
         value={value}
         onChange={(event) => setValue(event.target.value)}
         placeholder="Nhập prompt..."
         aria-label="Prompt"
-        className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm"
       />
       <Button type="submit" disabled={!value.trim()}>
         Gửi

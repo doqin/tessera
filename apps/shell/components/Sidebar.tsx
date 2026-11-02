@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AppNav, type AppNavItem } from "@tessera/shared-ui";
+import { AppNav, SidebarPanel, type AppNavItem } from "@tessera/shared-ui";
 import { useIntegrationStore } from "@tessera/integration-store";
 
 const NAV_ITEMS: AppNavItem[] = [
@@ -19,5 +19,9 @@ export function Sidebar() {
     setNavState(pathname);
   }, [pathname, setNavState]);
 
-  return <AppNav items={NAV_ITEMS} activeHref={pathname} LinkComponent={Link} />;
+  return (
+    <SidebarPanel>
+      <AppNav items={NAV_ITEMS} activeHref={pathname} LinkComponent={Link} />
+    </SidebarPanel>
+  );
 }

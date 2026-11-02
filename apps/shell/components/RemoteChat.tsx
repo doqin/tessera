@@ -10,7 +10,7 @@ const ChatModule = dynamic(loadChatRemote, {
   // RemoteModuleBoundary bắt được (spec FR5/AC5).
   loading: ({ error }) => {
     if (error) throw error;
-    return <p className="text-sm text-foreground/70">Đang tải Chat module…</p>;
+    return <p style={{ color: "var(--dq-color-muted)" }}>Đang tải Chat module…</p>;
   },
 });
 

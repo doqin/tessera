@@ -5,5 +5,7 @@ export type { CardProps } from "./Card";
 export { Layout } from "./Layout";
 export type { LayoutProps } from "./Layout";
 export { AppHeader } from "./AppHeader";
+export { SidebarPanel } from "./SidebarPanel";
+export type { SidebarPanelProps } from "./SidebarPanel";
 export { AppNav } from "./AppNav";
 export type { AppNavItem, AppNavProps } from "./AppNav";

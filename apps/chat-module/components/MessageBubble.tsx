@@ -8,18 +8,30 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === "user";
 
   return (
-    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+    <div
+      className="dq-row"
+      style={{ justifyContent: isUser ? "flex-end" : "flex-start", gap: "var(--dq-space-2)" }}
+    >
       <div
-        className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${
-          isUser ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
-        }`}
+        className="dq-panel"
+        style={{
+          maxWidth: "75%",
+          padding: "var(--dq-space-2) var(--dq-space-3)",
+          border: "2px solid var(--dq-color-primary)",
+          background: isUser ? "var(--dq-color-primary)" : "var(--dq-color-secondary)",
+          color: isUser ? "var(--dq-color-primary-fg)" : "var(--dq-color-secondary-fg)",
+        }}
       >
         <p>{message.content}</p>
         {message.status === "error" ? (
-          <p className="mt-1 text-xs opacity-80">Lỗi/timeout — thử gửi lại.</p>
+          <p style={{ fontSize: "var(--dq-text-sm)", marginTop: "var(--dq-space-1)" }}>
+            Lỗi/timeout — thử gửi lại.
+          </p>
         ) : null}
         {message.status === "interrupted" ? (
-          <p className="mt-1 text-xs opacity-80">Phản hồi bị ngắt giữa chừng.</p>
+          <p style={{ fontSize: "var(--dq-text-sm)", marginTop: "var(--dq-space-1)" }}>
+            Phản hồi bị ngắt giữa chừng.
+          </p>
         ) : null}
       </div>
     </div>

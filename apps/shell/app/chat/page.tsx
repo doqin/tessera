@@ -2,7 +2,7 @@ import { RemoteChat } from "../../components/RemoteChat";
 
 export default function ChatPage() {
   return (
-    <div className="flex h-full flex-col">
+    <div className="dq-stack" style={{ height: "100%" }}>
       <RemoteChat />
     </div>
   );
