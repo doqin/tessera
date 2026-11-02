@@ -357,7 +357,12 @@ integration test (T016).
 3. **`styled-jsx` phải khai báo tường minh** trong từng app (peer của `nextjs-mf`; npm workspace
    hoist `nextjs-mf` lên root nhưng để `styled-jsx` nằm trong `next/`). Tương tự `webpack` phải ghim
    `5.99.9` **cả ở root** (không chỉ trong app), nếu không bản `webpack@5.112` hoist lên root bị
-   `@module-federation/enhanced` resolve nhầm.
+   `@module-federation/enhanced` resolve nhầm. Kèm theo: `schema-utils` ghim `4.3.2` bằng `overrides`
+   (bản `4.8.2` khai báo peer `webpack ^5.112.0`, kéo `webpack@5.112` vào lock và làm `npm ci` fail),
+   và `@swc/helpers@0.5.2` khai báo tường minh ở root (npm 10 bỏ sót khi resolve lại lock trong
+   workspace, khiến `next build` fail vì thiếu `_interop_require_default`). Lockfile cũng phải giữ đủ
+   các entry `apps/*/node_modules/@next/swc-linux-*`; regenerate lock trên Windows có thể prune các
+   entry khác platform, làm Vercel cố tải `@next/swc-linux-x64-gnu@13.5.11` (không tồn tại) và fail.
 4. **`NEXT_PRIVATE_LOCAL_WEBPACK=true`** đặt ngay đầu `next.config.js` (đủ sớm — không cần biến
    môi trường ngoài), nên `npm run build`/CI không cần đổi.
 5. **Lỗi nạp remote bị `nextjs-mf` nuốt:** fallback mặc định chỉ log "offline" rồi render `null` →
