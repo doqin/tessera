@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@doqin/dqcss": "^0.1.0",
     "@module-federation/nextjs-mf": "8.8.76",
     "@tessera/integration-store": "*",
     "@tessera/shared-ui": "*",
