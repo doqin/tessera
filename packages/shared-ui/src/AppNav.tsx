@@ -1,3 +1,5 @@
+import type { ElementType } from "react";
+
 export interface AppNavItem {
   href: string;
   label: string;
@@ -6,20 +8,21 @@ export interface AppNavItem {
 export interface AppNavProps {
   items: AppNavItem[];
   activeHref: string;
+  /**
+   * Component render link. Mặc định thẻ `<a>` thuần (hard navigation); host truyền `next/link`
+   * để điều hướng mềm giữa các route cùng app (không reload trang — spec FR2/FR3).
+   */
+  LinkComponent?: ElementType;
 }
 
-/**
- * Nav dùng chung giữa các zone (Next.js Multi-Zones) — luôn dùng thẻ <a> thuần thay vì
- * next/link, vì điều hướng có thể băng qua zone khác (domain/app khác); next/link chỉ
- * soft-navigate đúng trong cùng 1 zone (xem docs/findings/R2-module-federation-nextjs-approuter.md).
- */
-export function AppNav({ items, activeHref }: AppNavProps) {
+export function AppNav({ items, activeHref, LinkComponent = "a" }: AppNavProps) {
+  const Link = LinkComponent;
   return (
     <nav className="flex flex-col gap-1 p-2">
       {items.map((item) => {
         const isActive = activeHref === item.href;
         return (
-          <a
+          <Link
             key={item.href}
             href={item.href}
             aria-current={isActive ? "page" : undefined}
@@ -30,7 +33,7 @@ export function AppNav({ items, activeHref }: AppNavProps) {
             }`}
           >
             {item.label}
-          </a>
+          </Link>
         );
       })}
     </nav>

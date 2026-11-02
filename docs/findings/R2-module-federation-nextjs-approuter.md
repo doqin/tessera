@@ -9,8 +9,11 @@
   cụ thể cho rủi ro R2 đã **xảy ra thật** và mitigation đã được kích hoạt đúng quy trình đề ra.
   Nội dung này dùng được trực tiếp cho phần "Risk Management" / "Bài học kinh nghiệm" của báo cáo
   đồ án.
-- **Kết quả cuối:** Pivot sang **Next.js Multi-Zones** (phương án dự phòng đã chốt sẵn ở D2 §3) —
-  xem hệ quả kiến trúc ở mục 8.
+- **Kết quả (cập nhật — đọc phần này trước):** lần thử trên Next.js 15.5 (mục 1–12) thất bại và
+  dẫn tới pivot tạm sang **Next.js Multi-Zones** (phương án dự phòng D2 §3). Sau đó **thử lại trên
+  Next.js 13.5.11 thành công** (mục 13), nên repo đã **quay lại Module Federation** (hạ cấp Next.js);
+  Multi-Zones không còn là kiến trúc hiện hành, chỉ còn trong lịch sử git (commit `f942392`). Các
+  mục 8–11 mô tả hệ quả của giai đoạn Multi-Zones đó — giữ lại làm bằng chứng/lịch sử.
 
 ## 1. Bối cảnh
 
@@ -219,3 +222,171 @@ code) cho:
 3. Một case study cụ thể, đáng tin cậy về giới hạn thực tế của Module Federation trên Next.js App
    Router tại thời điểm thực hiện đồ án (09/2026) — có thể trích dẫn trực tiếp GitHub issue
    `module-federation/core#3153` làm nguồn tham chiếu học thuật.
+
+## 13. Phụ lục (2026-11-03): Thử lại với Next.js 13.5.11 — Module Federation chạy được nhưng cần nhiều workaround
+
+- **Bối cảnh:** sau khi pivot sang Multi-Zones, đặt câu hỏi liệu hạ xuống Next.js 13.5+ (phiên bản
+  còn nằm trong `peerDependencies` của `@module-federation/nextjs-mf`) có làm Module Federation chạy
+  được hay không. Thử nghiệm làm trong một spike tách biệt, **không nằm trong repo** (host + remote
+  tối thiểu, App Router, mỗi bên một app Next.js), không đụng tới `apps/shell` hay
+  `apps/chat-module`.
+- **Phiên bản/cách tiếp cận khác với mục 2–8:** `@module-federation/nextjs-mf@8.8.76` (plugin biên
+  dịch) thay vì runtime API của `@module-federation/enhanced`; Next.js `13.5.11` + React `18.2.0`
+  thay vì Next.js `15.5.25` + React `19.1.0`.
+
+### 13.1 Kết quả
+
+Remote (`ChatModule`, client component) được host nạp và render thành công trong trình duyệt, state
+hook hoạt động (React dùng chung 1 instance) ở cả `next build` + `next start` lẫn `next dev`. Nghĩa là
+**kết luận ở mục 8 ("không khả thi") chỉ đúng với tổ hợp đã thử lúc đó** (Next 15.5 + runtime API),
+không đúng tuyệt đối với Module Federation + App Router. Tuy nhiên kết quả đạt được phải đánh đổi như
+13.2–13.4.
+
+### 13.2 Các workaround bắt buộc
+
+1. **Guard chặn App Router của `nextjs-mf`.** Plugin ném lỗi `App Directory is not supported by
+nextjs-mf` ngay khi tồn tại thư mục `app/` (kiểm tra `BuildManifestPlugin.appDirEnabled`), không phụ
+   thuộc phiên bản Next. Vượt qua bằng cách tạm đặt cờ này về `false` chỉ trong lúc plugin validate,
+   rồi đặt lại `true` bằng một plugin nhỏ push ngay sau. **Không được** để `false` vĩnh viễn: cờ này
+   cũng là cờ Next dùng để điền `rootMainFiles`; để `false` làm build lỗi `Invariant: missing
+bootstrap script`.
+2. **Chỉ federation ở client compiler.** Áp plugin cho compiler server gây lỗi `Can not get
+'react-dom'` (federation tranh chấp với React vendored của App Router). Remote và host trong spike
+   đều chỉ cần client (host import bằng `next/dynamic` với `ssr: false`), nên plugin chỉ chạy khi
+   `!options.isServer`.
+3. **Alias specifier của remote ở compiler server/edge.** Compiler server/edge vẫn parse file có
+   `import("chat_module/ChatModule")` dù `ssr: false`, nên báo `Can't resolve 'chat_module/ChatModule'`.
+   Đặt `resolve.alias["chat_module/ChatModule"] = false` cho các compiler này. **Đây rất có thể
+   cũng là nguyên nhân thật của lỗi ở mục 6** (lúc đó chỉ kết luận từ log của compiler `client`; chưa
+   thử lại trên Next 15.5 để xác nhận).
+4. **Chia sẻ React vendored của Next, không phải React npm.** Chia sẻ `react@18.2.0` thông thường
+   (mặc định của `nextjs-mf`) thay nhầm bản React mà App Router cần, làm hỏng chính runtime của Next
+   (`(0, i.use) is not a function` trong `ServerRoot`). Khai báo `shared` trỏ `import` vào
+   `next/dist/compiled/react`, `next/dist/compiled/react/jsx-runtime`, `next/dist/compiled/react-dom`
+   (`singleton: true`, `eager: true`, `shareKey` là tên package gốc) cùng
+   `extraOptions.skipSharingNextInternals: true` thì host và remote dùng chung 1 React instance.
+   Nếu không chia sẻ gì, remote chạy React riêng và lỗi `Cannot read properties of null (reading
+'useState')`.
+5. **Ghim phiên bản.** `webpack` phải `<= 5.111.x`: từ `5.112.0` Webpack đã xoá
+   `lib/util/extractUrlAndGlobal`, trong khi `@module-federation/enhanced@2.9.2` vẫn `require` file
+   này (`Cannot find module ... extractUrlAndGlobal`). Phải đặt `NEXT_PRIVATE_LOCAL_WEBPACK=true`
+   (plugin ném lỗi nếu thiếu).
+
+### 13.3 Điểm khác biệt đáng chú ý so với lần thử ở mục 8
+
+`remoteEntry.js` sinh ra ở lần này là container độc lập (`!function(){var __webpack_modules__=...`),
+**không** push vào mảng toàn cục `self.webpackChunk_N_E` như ở mục 8. Lỗi `output.uniqueName` trùng
+nhau không tái diễn vì plugin tự đặt `output.uniqueName` theo `name` đã khai báo.
+
+### 13.4 Hạn chế còn lại (chưa giải quyết)
+
+- Remote **chỉ render phía client**, không có SSR. Phù hợp với một widget như Chat, nhưng không áp
+  dụng được nếu cần SSR cho nội dung của remote.
+- Runtime federation yêu cầu mỗi chunk của page host bằng URL sai dạng `/autostatic/chunks/app/
+page-*.js` (404), song song với lượt tải đúng `/_next/static/...` do loader của Next thực hiện.
+  Trang vẫn hoạt động nhưng sinh 404 thừa, và chưa kiểm chứng cho các route chunk khác.
+- Dev mode báo cảnh báo thiếu `version` cho shared module `react`/`react-dom` vendored (có thể xử
+  lý bằng cách khai báo `version` tường minh; chưa làm).
+- Hạ cấp phụ thuộc: Next.js 13.5 + React 18 (thay vì Next 15.5 + React 19), và không còn dùng được
+  `next.config.ts` (Next < 15 chỉ nhận `next.config.js`/`.mjs`).
+- Mới thử remote đơn giản, chưa thử với `packages/shared-ui`, `packages/integration-store` (Zustand
+  chia sẻ giữa host và remote), Tailwind v4, hay nhiều remote cùng lúc.
+
+### 13.5 Thử lại cùng cấu hình trên Next.js 15.5.25 + React 19.1 (không thành công)
+
+Dùng đúng cấu hình ở 13.2, đổi phiên bản thành Next 15.5.25 + React 19.1.0:
+
+1. Build lỗi `_resolveContext_stack.delete is not a function`: `next/dist/build/webpack/plugins/
+optional-peer-dependency-resolve-plugin.js` của Next 15.5 giả định `resolveContext.stack` là
+   `Set`, còn `enhanced-resolve@5.26` (kéo theo bởi webpack local) đã đổi cấu trúc. Khắc phục bằng
+   `overrides: { "enhanced-resolve": "5.18.3" }`.
+2. Sau đó build lỗi `webpack/runtime/federation runtime — Path variable [contenthash] not
+implemented in this context: static/chunks/[name]-[contenthash].js`. Đổi sang `[chunkhash]` cho
+   cùng lỗi (`[chunkhash]` not implemented). Dừng thử tại đây vì ngoài phạm vi spike.
+
+Kết luận từng phần: trên Next 15.5, tổ hợp này chưa build được; trên Next 13.5.11 thì chạy được. Điều
+này khớp với việc `nextjs-mf` mới chỉ được kiểm thử rõ ràng tới Next 14, và phù hợp với cảnh báo "chỉ
+duy trì" ở mục 2.
+
+### 13.6 Phương án chưa thử
+
+`nextjs-mf` được thiết kế cho **Pages Router**; nhánh này chưa được thử trong spike (không cần các
+workaround 1–4 ở 13.2). Nếu muốn giữ Module Federation, đây là hướng ít hack nhất nhưng yêu cầu
+đổi Router (xung đột với giả định App Router trong các spec hiện tại), nên cần quyết định riêng và cập
+nhật `spec.md`/`plan.md` trước khi triển khai.
+
+### 13.7 Đánh giá
+
+Quyết định pivot sang Multi-Zones ở mục 9 là hợp lý trong bối cảnh lúc đó (Next 15.5, cấu hình
+chưa tìm ra). Phụ lục này bổ sung bằng chứng rằng Module Federation + App Router không phải "không
+thể" mà là "khả thi nhưng mong manh": phải hạ phiên bản, phải vượt guard của plugin, và phụ thuộc
+vào chi tiết nội bộ (cờ `appDirEnabled`, bản React vendored của Next) có thể vỡ ở bản cập nhật tiếp
+theo. **Quyết định hiện tại (khi merge vào `main`): dùng Module Federation trên Next.js 13.5.11**,
+chấp nhận các đánh đổi ở 13.4/13.8; Multi-Zones là phương án dự phòng nếu Module Federation hỏng khi
+nâng phiên bản. Với đồ án này, đây cũng là minh chứng cho giá trị của việc có phương án dự phòng (D2
+§3): có lối thoát khi MF thất bại, và có thể quay lại phương án chính khi tìm ra cách.
+
+### 13.8 Port toàn bộ dự án sang Next.js 13.5.11 (nhánh `feature/next-13-module-federation`, merge vào `main`)
+
+Sau spike, toàn bộ `apps/shell` + `apps/chat-module` được port sang Next.js 13.5.11 / React 18.2.0 /
+`@module-federation/nextjs-mf@8.8.76` (trước đó `main` là phương án Multi-Zones trên Next.js 15.5;
+nhánh này được merge để thay thế). Kiến trúc: Shell (host) có route `/chat` nạp `chat_module/ChatModule` qua Module Federation
+(client-only, `next/dynamic` + `ssr: false`), Chat module (remote) chạy độc lập ở :3001 và expose
+`./ChatModule`; `@tessera/integration-store` + `zustand` + React vendored chia sẻ singleton.
+
+**Kết quả kiểm chứng:** lint, typecheck (root + 2 app), `next build` cả 2 app, 53/53 unit test
+(coverage 94% statements) đều pass; chạy thật trong browser ở cả `next build && next start` lẫn
+`next dev`: `/chat` nạp remote thành công, chuyển `/dashboard` → `/chat` bằng soft navigation
+(không reload trang — khôi phục FR2/FR3/NFR2 gốc), gửi prompt qua remote cập nhật `lastToolCall` vào
+store dùng chung, tắt server remote thì Shell hiển thị fallback rõ ràng (FR5/AC5).
+
+**Kiểm chứng store singleton (browser, 2026-11-03):** `window.__FEDERATION__.__INSTANCES__` có 2
+instance (`shell`, `chat_module`) cùng trỏ tới một `shareScopeMap.default`; chỉ tồn tại một entry
+`@tessera/integration-store@0.1.0` (`from: "shell"`, `loaded: true`) và một entry
+`zustand@5.0.15`. Sau khi Shell ghi `navState = "/chat"` và remote gửi prompt ghi `lastToolCall`,
+cùng một store state chứa cả hai giá trị. Điều này xác nhận Shell và remote dùng chung **một
+instance** store; phần re-render live khi một component khác đọc `lastToolCall` vẫn chờ Dashboard /
+integration test (T016).
+
+**Khác biệt so với giai đoạn Multi-Zones / workaround phát sinh thêm khi port đầy đủ (ngoài 13.2):**
+
+1. **Next.js 13.5 không nhận `next.config.ts` / `postcss.config.mjs`** — đổi thành `.js` (CJS).
+   Với `postcss.config.mjs`, Tailwind v4 âm thầm không chạy (trang không có style, không báo lỗi).
+2. **Font:** `Geist`/`Geist_Mono` không có trong `next/font/google` của 13.5 → thay bằng `Inter` /
+   `Roboto_Mono`.
+3. **`styled-jsx` phải khai báo tường minh** trong từng app (peer của `nextjs-mf`; npm workspace
+   hoist `nextjs-mf` lên root nhưng để `styled-jsx` nằm trong `next/`). Tương tự `webpack` phải ghim
+   `5.99.9` **cả ở root** (không chỉ trong app), nếu không bản `webpack@5.112` hoist lên root bị
+   `@module-federation/enhanced` resolve nhầm. Kèm theo: `schema-utils` ghim `4.3.2` bằng `overrides`
+   (bản `4.8.2` khai báo peer `webpack ^5.112.0`, kéo `webpack@5.112` vào lock và làm `npm ci` fail),
+   và `@swc/helpers@0.5.2` khai báo tường minh ở root (npm 10 bỏ sót khi resolve lại lock trong
+   workspace, khiến `next build` fail vì thiếu `_interop_require_default`). Lockfile cũng phải giữ đủ
+   các entry `apps/*/node_modules/@next/swc-linux-*`; regenerate lock trên Windows có thể prune các
+   entry khác platform, làm Vercel cố tải `@next/swc-linux-x64-gnu@13.5.11` (không tồn tại) và fail.
+4. **`NEXT_PRIVATE_LOCAL_WEBPACK=true`** đặt ngay đầu `next.config.js` (đủ sớm — không cần biến
+   môi trường ngoài), nên `npm run build`/CI không cần đổi.
+5. **Lỗi nạp remote bị `nextjs-mf` nuốt:** fallback mặc định chỉ log "offline" rồi render `null` →
+   vùng trống không giải thích. Thêm runtime plugin `apps/shell/mf/errorRemotePlugin.js` (đăng ký
+   qua `runtimePlugins`, chạy sau plugin mặc định nên thắng) trả về component ném lỗi để
+   `RemoteModuleBoundary` hiển thị fallback. `next/dynamic` còn ghi nhớ kết quả lỗi trong phiên →
+   nút "Tải lại trang" thay vì chỉ reset boundary.
+6. **CSS của remote:** chunk remote không mang CSS đi kèm → `globals.css` của Shell phải `@source`
+   thư mục `components` của chat-module (chỉ quét text class, không import code — Constitution §2).
+   Đánh đổi: Shell phải biết đường dẫn source của remote tại thời điểm build.
+7. `AppNav` (shared-ui) thêm prop `LinkComponent` (mặc định `<a>`); Shell truyền `next/link` để
+   soft-navigate. `ZoneNav` của chat-module bị xoá (không còn zone riêng).
+
+**Vấn đề còn lại / cảnh báo vô hại:** các hạn chế ở 13.4 (không SSR cho remote; request thừa
+`/autostatic/...` → 404 — xác nhận lặp lại ở cả dev lẫn prod, trang vẫn hoạt động); cảnh báo build
+`Failed to patch lockfile ... 'os'` (Next 13.5 không hiểu lockfile npm 11), `Skipped not serializable
+cache item` (module federation không vào persistent cache của webpack — build chậm hơn) và log
+`.next/ssr does not exist` (plugin tìm container server không được dựng).
+
+**Lưu ý môi trường phát triển:** ổ `D:` của máy phát triển là exFAT — không tạo được symlink/junction
+nên `npm install` (npm workspaces) không chạy được trực tiếp trong thư mục repo; toàn bộ cài đặt và
+kiểm chứng ở 13.8 được thực hiện trên bản sao ở ổ NTFS. `package-lock.json` được sinh lại từ đó
+(React 19 → 18, Next 15 → 13).
+
+**Chưa làm:** deploy Vercel (cần `NEXT_PUBLIC_CHAT_MODULE_URL` trỏ domain thật của remote + CORS nếu
+cần), integration test tự động Shell ⇄ remote, nhiều remote/`003-dashboard-module`, so sánh hiệu năng
+(NFR1/NFR3) với phương án Multi-Zones.

@@ -1,56 +1,82 @@
 # Plan: Application Shell (001-shell-app)
 
-- **Nguồn:** `spec.md` (đã Clarify + Checklist §9–10, Amendment §11), `UIT.SE.66-D2-TechStackFoundation`
-  §4–7, `UIT.SE.66-D3-ProblemSolutionModel` §3, §4, §5, §7.
+- **Nguồn:** `spec.md` (đã Clarify + Checklist §9–10, Lịch sử quyết định §11),
+  `UIT.SE.66-D2-TechStackFoundation` §4–7, `UIT.SE.66-D3-ProblemSolutionModel` §3, §4, §5, §7.
 - **Trạng thái:** Implemented (foundation).
-- **Lịch sử quan trọng:** Bản kế hoạch này ban đầu chọn Module Federation làm cơ chế Integration
-  Layer. Sau khi triển khai thật gặp một chuỗi lỗi build-time/runtime không tự khắc phục được (xem
-  toàn bộ quá trình, bằng chứng lỗi, phân tích nguyên nhân tại
-  `docs/findings/R2-module-federation-nextjs-approuter.md`), đã **pivot sang Next.js Multi-Zones**
-  — phương án dự phòng cho rủi ro R2 đã chốt sẵn từ D2 §3/D3 §5. Tài liệu này mô tả kiến trúc
-  **sau pivot** (trạng thái implement thật trong repo).
+- **Lịch sử quan trọng:** Module Federation (kế hoạch gốc) thất bại trên Next.js 15.5 → tạm dùng
+  Next.js Multi-Zones → thử lại và chạy được trên Next.js 13.5.11 → **kiến trúc hiện tại là Module
+  Federation trên Next.js 13.5.11**. Tài liệu này mô tả kiến trúc hiện tại; toàn bộ bằng chứng,
+  workaround và hạn chế: `docs/findings/R2-module-federation-nextjs-approuter.md` (§13).
 
 ## 1. Kiến trúc tổng quan
 
-Application Shell là **zone chủ** trong mô hình Multi-Zones (Constitution §2, D3 §3 — 3 lớp
-Shell/Module/Integration Layer không đổi, chỉ đổi cơ chế Integration Layer nạp module):
+Application Shell là **host Module Federation** (Constitution §2, D3 §3 — 3 lớp Shell/Module/
+Integration Layer):
 
 ```
-apps/shell/                      ← Application Shell (zone chủ)
-├── next.config.ts                transpilePackages + rewrites() proxy /chat sang zone Chat module
+apps/shell/                      ← Application Shell (host, :3000)
+├── next.config.js                NextFederationPlugin (remotes + shared) + workaround App Router
+├── postcss.config.js             Tailwind v4 (phải là .js — Next 13.5 không nhận .mjs)
+├── mf/errorRemotePlugin.js       runtime plugin: lỗi nạp remote → component ném lỗi cho boundary
+├── types/remotes.d.ts            khai báo kiểu cho module remote `chat_module/ChatModule`
 ├── app/
 │   ├── layout.tsx                RootLayout — AppHeader + Sidebar (packages/shared-ui)
 │   ├── page.tsx                  redirect → /chat
-│   └── dashboard/page.tsx         placeholder "chưa triển khai" (003 chưa có spec)
+│   ├── chat/page.tsx             mount <RemoteChat /> vào vùng nội dung
+│   └── dashboard/page.tsx        placeholder "chưa triển khai" (003 chưa có spec)
 └── components/
-    └── Sidebar.tsx                "use client", usePathname() + sync navState vào store dùng chung
+    ├── Sidebar.tsx               "use client", usePathname() + sync navState; AppNav + next/link
+    ├── RemoteChat.tsx            next/dynamic(loadChatRemote, { ssr: false }) trong boundary
+    ├── chatRemote.ts             điểm nạp duy nhất `import("chat_module/ChatModule")`
+    └── RemoteModuleBoundary.tsx  error boundary + fallback (FR5/AC5)
 ```
 
-`apps/chat-module/` là **zone thứ cấp** độc lập, tự phục vụ chrome (header/nav) giống hệt Shell để
-giữ cảm giác 1 giao diện thống nhất (Next.js Multi-Zones guide: "look the same to the user") — chi
-tiết ở `specs/002-chat-module/plan.md`.
+`apps/chat-module/` là **remote**, chi tiết ở `specs/002-chat-module/plan.md`. Shell không import
+code của remote lúc build — chỉ biết tên module (`chat_module/ChatModule`) và URL `remoteEntry.js`.
 
-## 2. Next.js Multi-Zones — cấu hình routing
+## 2. Module Federation — cấu hình host
 
-- **`apps/shell/next.config.ts`**: `rewrites()` proxy `/chat` và `/chat/:path*` (bắt luôn static
-  asset `/chat/_next/...`) sang `${NEXT_PUBLIC_CHAT_MODULE_URL}/chat...` (dev mặc định
-  `http://localhost:3001`; production đặt biến môi trường này trỏ domain Vercel thật của
-  `chat-module` — T014).
-- **`apps/chat-module/next.config.ts`**: `basePath: "/chat"` — Next.js tự động prefix mọi route +
-  static asset của app này với `/chat`, khớp đúng đích rewrite phía Shell. Không cần cấu hình
-  `assetPrefix` riêng (basePath đã lo phần đó).
-- **Điều hướng giữa 2 zone dùng thẻ `<a>` thuần**, không `next/link` — theo đúng khuyến nghị chính
-  thức của Next.js Multi-Zones (next/link chỉ soft-navigate đúng trong cùng 1 zone). Nav dùng
-  chung (`AppNav` — `packages/shared-ui`) luôn render `<a>`, kể cả cho route trong cùng zone
-  (Dashboard) — đơn giản hoá 1 component dùng chung cho mọi zone, đánh đổi mất soft-navigation nội
-  bộ Shell (chấp nhận được ở quy mô PoC 1 route/zone).
-- **Không còn cần:** `@module-federation/enhanced`, `webpack` devDependency riêng,
-  `hooks/useRemoteComponent.ts`, `components/RemoteModuleBoundary.tsx` — đã xoá khỏi codebase khi
-  pivot (lịch sử đầy đủ trong findings doc, không lặp lại ở đây).
+Nền tảng: Next.js **13.5.11** (App Router), React 18.2, `@module-federation/nextjs-mf` 8.8.76,
+`webpack` 5.99.9 (ghim ở root + từng app), `styled-jsx` 5.1.1. Ràng buộc phiên bản và lý do
+(`webpack@5.112` xoá `extractUrlAndGlobal`; Next 15.x chưa build được với MF): findings §13.
 
-## 3. Integration Layer — Zustand store dùng chung (persist qua localStorage)
+`apps/shell/next.config.js`:
 
-`packages/integration-store/src/integrationStore.ts` (theo D3 §7, spec FR4 amended):
+- Đặt `process.env.NEXT_PRIVATE_LOCAL_WEBPACK = "true"` ở đầu file (nextjs-mf bắt buộc dùng webpack
+  cài local).
+- `remotes.chat_module = chat_module@${NEXT_PUBLIC_CHAT_MODULE_URL}/_next/static/chunks/remoteEntry.js`
+  (mặc định `http://localhost:3001`; **đọc lúc build** nên production phải đặt biến này trước khi
+  build Shell — T013).
+- **Chỉ federation ở client compiler.** Compiler server/edge vẫn parse `import("chat_module/...")`
+  nên được alias về module rỗng (`resolve.alias[...] = false`).
+- **Bỏ guard App Router của nextjs-mf:** đặt `BuildManifestPlugin.appDirEnabled = false` chỉ trong
+  lúc plugin validate rồi đặt lại `true` bằng một plugin nhỏ push ngay sau (cờ này Next dùng để sinh
+  `rootMainFiles`; để `false` vĩnh viễn làm build lỗi "missing bootstrap script").
+- **`shared`:** `react`, `react/jsx-runtime`, `react-dom` trỏ vào bản **vendored của Next**
+  (`next/dist/compiled/...`, singleton, eager) — chia sẻ React npm làm hỏng runtime App Router;
+  cùng `@tessera/integration-store` và `zustand` (singleton) cho Integration Layer.
+- `runtimePlugins: [mf/errorRemotePlugin.js]` — mặc định nextjs-mf nuốt lỗi nạp remote (render
+  `null`); plugin này trả về component ném lỗi để boundary hiện fallback.
+- `transpilePackages: ["@tessera/shared-ui", "@tessera/integration-store"]`,
+  `eslint.ignoreDuringBuilds` (lint chạy ở bước CI riêng; môi trường build Vercel không luôn có
+  eslint).
+
+**Nạp remote ở client:** `RemoteChat` dùng `next/dynamic(loadChatRemote, { ssr: false })`; `loading`
+ném lại `error` (next/dynamic báo lỗi qua prop thay vì throw) để `RemoteModuleBoundary` bắt được.
+`RemoteModuleBoundary` hiển thị tên module + thông điệp lỗi + nút "Tải lại trang" (reload thật vì
+next/dynamic ghi nhớ kết quả lỗi trong phiên, reset state boundary là không đủ).
+
+**Điều hướng:** `AppNav` (`packages/shared-ui`) nhận prop `LinkComponent` (mặc định `<a>`); Sidebar
+truyền `next/link` → soft navigation giữa `/chat` và `/dashboard`, không reload (FR2/FR3).
+
+**CSS của remote:** chunk remote không mang CSS đi kèm; `apps/shell/app/globals.css` có
+`@source "../../../apps/chat-module/components"` (và `packages/shared-ui/src`) để Tailwind v4 sinh
+sẵn utility class mà component của remote dùng. Chỉ quét text class, không import code (Constitution
+§2). Đánh đổi: Shell phải biết đường dẫn source của remote lúc build.
+
+## 3. Integration Layer — Zustand store dùng chung
+
+`packages/integration-store/src/integrationStore.ts` (D3 §7):
 
 ```ts
 interface IntegrationState {
@@ -62,56 +88,65 @@ interface IntegrationState {
 }
 ```
 
-- Store sống ở `packages/integration-store` (không phải `apps/shell/`) — giữ đúng vai trò
-  "Integration Layer" là một lớp độc lập (D3 §3), không thuộc về Shell hay module nào. Cả
-  `apps/shell` và `apps/chat-module` khai báo `@tessera/integration-store` qua npm workspace.
-- **Persist qua `localStorage`** (Zustand `persist` middleware, `partialize` chỉ giữ `sessionId`,
-  `lastToolCall`, `navState`) — **bắt buộc sau khi pivot Multi-Zones**: mỗi lần băng qua zone là
-  một lần nạp lại runtime JS (store in-memory bị reset hoàn toàn), nhưng `localStorage` vẫn dùng
-  chung được vì các zone cùng origin trình duyệt (chỉ khác server phía sau proxy). Zone tải sau
-  **hydrate** được giá trị gần nhất lúc mount — không còn "live re-render trong khi đang mounted"
-  như thiết kế MF ban đầu (xem spec FR4/AC4 amended).
-- `noopStorage` guard cho `typeof window === "undefined"` — tránh lỗi khi package này được
-  evaluate ở server-side render (Next.js Server Components).
-- `lastToolCall`/`navState` cập nhật đồng bộ qua `set()` — last-write-wins (Clarify §9, vẫn đúng
-  trong phạm vi 1 zone).
+- Store sống ở `packages/integration-store` (không thuộc Shell hay module nào — D3 §3). `apps/shell`
+  và `apps/chat-module` khai báo `@tessera/integration-store` qua npm workspace; Module Federation
+  `shared` (singleton) để Shell và remote dùng chung **một instance** lúc chạy.
+- **Persist qua `localStorage`** (Zustand `persist`, `partialize` giữ `sessionId`, `lastToolCall`,
+  `navState`): giữ trạng thái khi tải lại trang và khi remote chạy độc lập. Đây là giữ nguyên từ
+  giai đoạn Multi-Zones (khi đó bắt buộc); dưới MF không còn bắt buộc nhưng vô hại và hữu ích.
+- `noopStorage` guard cho `typeof window === "undefined"` (evaluate ở server-side render).
+- Cập nhật đồng bộ qua `set()` — last-write-wins (Clarify §9).
+- **Đã kiểm chứng (browser, 2026-11-03):** Shell và remote thực sự dùng chung 1 instance store —
+  `window.__FEDERATION__.__INSTANCES__` có 2 instance (`shell`, `chat_module`) cùng trỏ một
+  `shareScopeMap.default`, chỉ có một entry `@tessera/integration-store@0.1.0` (`from: "shell"`,
+  `loaded: true`); `navState` do Shell ghi và `lastToolCall` do remote ghi cùng nằm trong một store
+  state.
+  **Chưa kiểm chứng:** re-render live khi một component khác đọc `lastToolCall` — Shell hiện không
+  có component nào đọc `lastToolCall`; cần Dashboard hoặc integration test (T016).
 
 ## 4. Component design (MVVM áp dụng ở tầng Shell — D3 §6)
 
-Shell không có "nghiệp vụ" phức tạp (không gọi LLM), MVVM ở đây mỏng: View (`Sidebar`, dùng
-`AppHeader`/`AppNav`/`Layout` từ `packages/shared-ui`) — không cần Model/service riêng vì Shell
-không gọi API ngoài. `Sidebar.tsx` là ViewModel-glue mỏng: đọc `usePathname()` (chỉ có ý nghĩa
-trong phạm vi zone Shell, vì Multi-Zones basePath khiến mỗi zone chỉ thấy pathname nội bộ của
-chính nó), sync vào `integrationStore.navState`, truyền `activeHref` xuống `AppNav` (component
-thuần, không phụ thuộc Next.js router — dùng lại được ở mọi zone).
+Shell không có nghiệp vụ phức tạp (không gọi LLM) nên MVVM mỏng: View (`Sidebar`, `RemoteChat`,
+`RemoteModuleBoundary`, dùng `AppHeader`/`AppNav`/`Layout`/`Card` từ `packages/shared-ui`); không có
+Model/service riêng. `Sidebar.tsx` là ViewModel-glue: đọc `usePathname()`, sync vào
+`integrationStore.navState`, truyền `activeHref` xuống `AppNav` (component thuần).
 
 ## 5. Tech stack cụ thể dùng cho module này
 
-| Nhóm        | Lựa chọn cụ thể                                                                                                                                                                                                                                 |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Next.js     | 15.x, App Router                                                                                                                                                                                                                                |
-| MFE         | Next.js Multi-Zones (`rewrites()` ở Shell, `basePath` ở Chat module) — đã pivot từ Module Federation, xem `docs/findings/R2-module-federation-nextjs-approuter.md`                                                                              |
-| Styling     | TailwindCSS v4 (CSS-first, đồng bộ token với `packages/shared-ui` qua `@source` — bắt buộc để Tailwind quét được class trong package ngoài, xem findings doc §11) + component phong cách shadcn-ui (hand-written, không chạy CLI `shadcn init`) |
-| State       | Zustand (+ `persist` middleware, localStorage)                                                                                                                                                                                                  |
-| Test        | Jest + React Testing Library, coverage ≥70% (Constitution §3)                                                                                                                                                                                   |
-| Lint/Format | ESLint config gốc (`eslint.config.mjs`) + Prettier — không tạo config riêng cho app                                                                                                                                                             |
+| Nhóm        | Lựa chọn cụ thể                                                                                                                                                                         |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Next.js     | **13.5.11**, App Router; React 18.2; `next.config.js` + `postcss.config.js` (CJS)                                                                                                       |
+| MFE         | Module Federation: `@module-federation/nextjs-mf` 8.8.76 + `webpack` 5.99.9; dự phòng Multi-Zones (xem §11 của spec)                                                                    |
+| Styling     | TailwindCSS v4 (CSS-first; `@source` cho `packages/shared-ui` và components của remote) + component phong cách shadcn-ui (viết tay); font `Inter`/`Roboto_Mono` (Geist không có ở 13.5) |
+| State       | Zustand (+ `persist` middleware, localStorage)                                                                                                                                          |
+| Test        | Jest + React Testing Library, coverage ≥70% (Constitution §3)                                                                                                                           |
+| Lint/Format | ESLint config gốc (`eslint.config.mjs`) + Prettier — không tạo config riêng cho app                                                                                                     |
 
 ## 6. Testing strategy
 
-- Unit test: `Sidebar` (mock `next/navigation`, kiểm tra sync vào store + active link),
-  `AppHeader`/`AppNav`/`Layout` (`packages/shared-ui`), `integrationStore` (set/get + rehydrate từ
-  localStorage qua `jest.isolateModules`, mô phỏng "zone khác nạp lại").
-- Manual/browser verification (đã thực hiện): 2 dev server (Shell :3000, Chat module :3001) +
-  production build (`next build && next start`) — xác nhận `/`, `/chat`, `/dashboard` render đúng
-  chrome, `AppNav` active state đúng, `lastToolCall` persist đúng qua `localStorage` sau khi gửi
-  prompt ở `/chat` rồi điều hướng sang `/dashboard`.
-- Không unit test cho `next.config.ts` (config, không phải logic nghiệp vụ).
+- Unit test: `Sidebar` (mock `next/navigation`, sync store + active link), `RemoteModuleBoundary`
+  (render/fallback/nút tải lại), `RemoteChat` (mock `chatRemote`: thành công và lỗi, tách 2 file test
+  vì next/dynamic memoize kết quả theo module), `errorRemotePlugin`, `AppHeader`/`AppNav`/`Layout`
+  (`packages/shared-ui`), `integrationStore` (set/get + rehydrate qua `jest.isolateModules`).
+- Không unit test `next.config.js`/`chatRemote.ts` (config / glue không resolve được trong jsdom).
+- Kiểm chứng browser (đã thực hiện, cả `next dev` và `next build && next start`, 2 server :3000 +
+  :3001): `/chat` nạp remote thành công; `/dashboard` → `/chat` soft navigation (không reload); gửi
+  prompt qua remote ghi `lastToolCall` vào store + `localStorage`; tắt server remote thì Shell hiện
+  fallback đúng FR5/AC5.
 
-## 7. Ngoài phạm vi lần thực hiện nền tảng này
+## 7. Hạn chế đã biết
+
+- Remote **chỉ render phía client** (không SSR cho nội dung remote).
+- Request thừa tới URL sai `/autostatic/chunks/...` (404) do federation runtime — trang vẫn hoạt
+  động (findings §13.4); cảnh báo build vô hại: `Failed to patch lockfile ... 'os'` (Next 13.5 với
+  lockfile npm 11), `Skipped not serializable cache item` (module federation không vào cache bền
+  của webpack → build chậm hơn), log `.next/ssr does not exist`.
+- Cấu hình dựa vào chi tiết nội bộ của nextjs-mf/Next.js (cờ `appDirEnabled`, React vendored) →
+  mong manh khi nâng phiên bản; phải build + kiểm browser sau mỗi lần nâng.
+- Ổ exFAT không chạy được `npm install` (cần symlink/junction cho npm workspaces).
+
+## 8. Ngoài phạm vi lần thực hiện nền tảng này
 
 - Không xây `/dashboard` thật (003 chưa có spec) — chỉ placeholder tĩnh.
-- Không deploy Vercel thật trong phiên làm việc này (cần Vercel account của người dùng) — xem
-  `tasks.md` mục cuối.
-- AC4 (Dashboard tự re-render live khi Chat cập nhật `lastToolCall`) không còn khả thi dưới
-  Multi-Zones trong khi 2 trang đang mounted đồng thời — đã ghi nhận là hệ quả kiến trúc chấp nhận
-  được, xem spec §11.
+- Không deploy Vercel thật (cần tài khoản của chủ đồ án) — xem `tasks.md` T013.
+- Chưa có integration test tự động Shell ⇄ remote và chưa đo NFR1/NFR3 (T016, T017).

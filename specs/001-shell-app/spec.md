@@ -1,7 +1,7 @@
 # Spec: Application Shell (001-shell-app)
 
-- **Status:** Implemented (foundation) — pivot sang Next.js Multi-Zones sau khi Module Federation
-  thất bại ở runtime (xem §11 Amendment, `docs/findings/R2-module-federation-nextjs-approuter.md`)
+- **Status:** Implemented (foundation) — Module Federation trên Next.js 13.5.11 (xem §11 Lịch sử
+  quyết định, `docs/findings/R2-module-federation-nextjs-approuter.md`)
 - **Liên quan:** UIT.SE.66-D3 §3 (Application Shell), UIT.SE.66-D1 §4 (quy trình SDD),
   UIT.SE.66-D2 (Tech Stack)
 
@@ -17,8 +17,8 @@ thống nhất dù các module được build và deploy độc lập.
 
 - Layout dùng Next.js App Router: header, sidebar điều hướng, vùng mount nội dung chính.
 - Routing tới `/chat` (Chat module) và `/dashboard` (Dashboard module).
-- Integration Layer: route `/chat` sang zone Chat module qua `rewrites()` (Next.js Multi-Zones —
-  xem §11 Amendment; ban đầu dự kiến Module Federation runtime import, đã pivot).
+- Integration Layer: Shell là **host Module Federation**, route `/chat` nạp remote
+  `chat_module/ChatModule` lúc runtime (client-only — §11).
 - Áp dụng shared design system (TailwindCSS + shadcn-ui) ở tầng shell.
 - Khởi tạo global store (Zustand) tại Integration Layer, expose: session id hiện tại, tool call
   gần nhất (`lastToolCall`), trạng thái điều hướng.
@@ -33,25 +33,24 @@ thống nhất dù các module được build và deploy độc lập.
 ## 3. Functional Requirements
 
 - **FR1:** Shell PHẢI render header + sidebar navigation trên mọi route.
-- **FR2 (amended, §11):** Khi điều hướng tới `/chat`, Shell PHẢI route đúng tới zone Chat module
-  (qua `rewrites()`) — đây là hard navigation (Next.js Multi-Zones), không còn ràng buộc "không
-  full page reload" như thiết kế Module Federation ban đầu.
-- **FR3:** Khi điều hướng tới `/dashboard` (route nội bộ, cùng zone với Shell), soft navigation
-  bình thường của Next.js App Router vẫn áp dụng.
-- **FR4 (amended, §11):** Shell PHẢI expose một Zustand store dùng chung (`sessionId`,
-  `lastToolCall`, `navState`), persist qua `localStorage` để zone tải sau (sau hard navigation)
-  hydrate được giá trị gần nhất — không còn live-reactive giữa 2 zone khác nhau trong khi đang
-  mounted đồng thời (bất khả thi dưới Multi-Zones, xem §11).
-- **FR5:** Nếu route tới zone/module thất bại, Shell (hoặc chính zone đó) PHẢI hiển thị lỗi/fallback
-  rõ ràng thay vì crash hoặc màn hình trắng không giải thích.
+- **FR2:** Khi điều hướng tới `/chat`, Shell PHẢI nạp remote Chat module (Module Federation) và
+  mount vào vùng nội dung bằng điều hướng mềm (soft navigation, không full page reload).
+- **FR3:** Khi điều hướng tới `/dashboard`, soft navigation của Next.js App Router áp dụng (hiện là
+  placeholder tĩnh; sẽ là remote thứ hai khi có spec 003).
+- **FR4:** Shell PHẢI expose một Zustand store dùng chung (`sessionId`, `lastToolCall`,
+  `navState`) tại Integration Layer, chia sẻ singleton giữa Shell và các remote qua cấu hình
+  `shared` của Module Federation, đồng thời persist qua `localStorage` để giữ giá trị sau khi
+  tải lại trang. (Store singleton đã kiểm chứng trong browser 2026-11-03 — Shell và remote cùng
+  ghi vào một instance; re-render live khi một component khác đọc `lastToolCall` vẫn chờ Dashboard,
+  tasks T016.)
+- **FR5:** Nếu remote không nạp được (server down, lỗi mạng, container lỗi), Shell PHẢI hiển thị
+  lỗi/fallback rõ ràng thay vì crash hoặc vùng trống không giải thích, và giữ nguyên header/sidebar.
 
 ## 4. Non-Functional Requirements (theo Quality Management — Project Charter)
 
 - **NFR1:** First Load < 3 giây.
-- **NFR2 (amended, §11):** Độ trễ chuyển tiếp < 300ms áp dụng cho điều hướng **trong cùng 1 zone**
-  (VD: Shell ⇄ `/dashboard`). Không áp dụng cho lượt băng qua zone khác (Shell → Chat module) —
-  đây là hard navigation theo mô hình Multi-Zones, tốn thời gian tương đương First Load của zone
-  đích (vẫn phải đạt NFR1 <3s ở zone đích).
+- **NFR2:** Độ trễ chuyển tiếp giữa các route < 300ms (điều hướng mềm, không reload — gồm cả lần
+  nạp remote đã được cache).
 - **NFR3:** Lighthouse Performance ≥ 80/100.
 - **NFR4:** Responsive, tương thích Chrome/Firefox/Edge, tối thiểu 1366×768.
 - **NFR5:** TypeScript strict mode; ESLint + Prettier pass trong CI.
@@ -61,20 +60,19 @@ thống nhất dù các module được build và deploy độc lập.
 
 - **AC1:** Given shell app đã deploy, when người dùng mở URL gốc, then header + sidebar render
   xong trong ngân sách First Load (<3s).
-- **AC2 (amended, §11):** Given người dùng click mục nav "Chat", when trình duyệt điều hướng tới
-  `/chat`, then trang Chat module render đúng nội dung + chrome (header/sidebar) trong ngân sách
-  First Load (<3s, NFR1) — không còn yêu cầu <300ms/không-reload (đó là hard navigation).
-- **AC3:** Given người dùng click mục nav "Dashboard" (cùng zone Shell), when route đổi thành
-  `/dashboard`, then trang render xong trong <300ms, không full page reload (soft navigation nội
-  bộ zone vẫn giữ nguyên).
-- **AC4 (amended, §11):** Given Chat module cập nhật `lastToolCall` trong store dùng chung, when
-  người dùng sau đó điều hướng sang `/dashboard`, then Dashboard đọc được giá trị `lastToolCall`
-  gần nhất từ `localStorage` lúc mount — không còn "tự re-render trong khi đang mounted" (2 zone
-  không cùng runtime JS).
-- **AC5:** Given zone Chat module không truy cập được (VD: server down, lỗi mạng ở tầng rewrite
-  proxy), when người dùng điều hướng tới `/chat`, then trình duyệt/Shell hiển thị lỗi rõ ràng thay
-  vì hành vi im lặng khó hiểu (Next.js mặc định trả lỗi proxy chuẩn; không cần Error Boundary
-  phía client nữa vì không còn runtime import remote ở client).
+- **AC2:** Given người dùng click mục nav "Chat", when route đổi thành `/chat`, then Chat module
+  (remote) được nạp và render đúng nội dung trong vùng nội dung của Shell, header/sidebar giữ
+  nguyên, không full page reload.
+- **AC3:** Given người dùng click mục nav "Dashboard", when route đổi thành `/dashboard`, then
+  trang render xong trong <300ms, không full page reload.
+- **AC4:** Given Chat module cập nhật `lastToolCall` trong store dùng chung, when module khác
+  (Dashboard — khi có) đang mounted hoặc mount sau đó, then đọc được `lastToolCall` mới nhất (qua
+  store singleton chia sẻ; sau khi tải lại trang thì qua `localStorage`). Đã kiểm chứng Shell và
+  remote cùng ghi vào một store instance trong browser (2026-11-03); phần đọc live phía Dashboard
+  vẫn chờ spec 003.
+- **AC5:** Given server Chat module không truy cập được, when người dùng điều hướng tới `/chat`,
+  then vùng nội dung hiển thị thông báo lỗi nêu tên module kèm nút tải lại trang, header/sidebar vẫn
+  hoạt động (`RemoteModuleBoundary` + runtime plugin báo lỗi của Shell).
 
 ## 6. Edge Cases (cần rà soát ở bước Clarify)
 
@@ -84,8 +82,8 @@ thống nhất dù các module được build và deploy độc lập.
 
 ## 7. Dependencies / References
 
-- Tech stack: Next.js (App Router) + TypeScript, **Next.js Multi-Zones** (đã pivot từ Module
-  Federation — §11), TailwindCSS/shadcn-ui, Zustand (UIT.SE.66-D2 §4).
+- Tech stack: Next.js 13.5.11 (App Router) + TypeScript, **Module Federation**
+  (`@module-federation/nextjs-mf`, §11), TailwindCSS/shadcn-ui, Zustand (UIT.SE.66-D2 §4).
 - Kiến trúc: UIT.SE.66-D3 §3–7 (mô hình 3 lớp MFE, MVVM trong module, mô hình chia sẻ state).
 - Constitution: `.specify/constitution.md`.
 
@@ -122,23 +120,25 @@ review theo Quality Management — Project Charter):
 - [x] Toàn bộ Edge Case ở mục 6 đã có quyết định xử lý ở mục 9 — không còn ambiguous requirement.
 - [x] Không có yêu cầu bảo mật production nằm ngoài Exclusions (đối chiếu Project Charter).
 - [x] Phạm vi khớp Inclusions của Project Charter — không mở rộng ngoài shell layout + routing +
-      Module Federation host + Zustand store dùng chung.
+      Module Federation host + Zustand store dùng chung (khớp thiết kế hiện tại — §11).
 - [x] Sẵn sàng chuyển sang bước Plan.
 
-## 11. Amendment (sau Implement) — pivot sang Next.js Multi-Zones
+## 11. Lịch sử quyết định — cơ chế Integration Layer
 
-Trong lúc thực hiện `tasks.md` (foundation), Module Federation (`@module-federation/nextjs-mf` rồi
-`@module-federation/enhanced`) liên tục gặp lỗi build-time và runtime không tự khắc phục được
-trong ngân sách thời gian hợp lý — kết thúc bằng một lỗi runtime sâu trong cơ chế
-"attach webpack chunk" của `@module-federation/runtime` không tương thích với container Next.js
-App Router sinh ra. Toàn bộ quá trình, bằng chứng lỗi cụ thể, và phân tích nguyên nhân được ghi lại
-đầy đủ tại `docs/findings/R2-module-federation-nextjs-approuter.md` — tài liệu này là minh chứng
-thực tế cho rủi ro **R2** trong Risk Management (Project Charter), với mitigation đã chốt sẵn từ
-D2 §3.
+1. **Dự kiến ban đầu:** Module Federation (`@module-federation/nextjs-mf`) trên Next.js App Router.
+2. **Thử trên Next.js 15.5 → thất bại:** `nextjs-mf` ở chế độ bảo trì (không hỗ trợ App Router) và
+   chuỗi lỗi build/runtime không khắc phục được trong ngân sách thời gian. Kích hoạt mitigation R2
+   (D2 §3): tạm thời chuyển sang **Next.js Multi-Zones** (`rewrites()` + `basePath`), kéo theo
+   việc sửa FR2/FR4/NFR2/AC2/AC4/AC5 (hard navigation, store chỉ hydrate qua `localStorage`).
+3. **Thử lại trên Next.js 13.5.11 → thành công (quyết định hiện tại):** Module Federation chạy được
+   trên 13.5.11 với một số workaround (bỏ guard App Router của plugin, federation chỉ ở client,
+   chia sẻ React vendored của Next, ghim webpack/React…). Do đó **hạ cấp Next.js 15.5 → 13.5.11 và
+   quay lại Module Federation**; các yêu cầu bị nới ở bước 2 được khôi phục về dạng gốc (FR2–FR5,
+   NFR2, AC2–AC5 ở trên), riêng FR4/AC4/FR5/AC5 viết lại theo cơ chế thật.
 
-**Quyết định (xác nhận bởi người dùng):** pivot sang **Next.js Multi-Zones** — phương án dự phòng
-đã chốt. FR2, FR4, NFR2, AC2, AC4, AC5 ở trên đã được sửa trực tiếp (đánh dấu "amended, §11") để
-phản ánh đúng hành vi hệ thống sau pivot, thay vì giữ nguyên yêu cầu không còn khả thi. Mô hình 3
-lớp (Constitution §2, D3 §3) không đổi — chỉ đổi cơ chế Integration Layer nạp module (route-based
-qua `rewrites()` thay vì runtime import qua Module Federation), đúng như D3 §5 đã dự kiến trước
-cho chính tình huống này.
+**Đánh đổi chấp nhận:** Next.js 13.5/React 18 (không hưởng tính năng 14/15); remote chỉ render phía
+client (không SSR); phụ thuộc vào workaround trên nội bộ của `nextjs-mf`/Next.js (mong manh khi nâng
+phiên bản); Shell phải `@source` thư mục component của remote để sinh CSS. Mô hình 3 lớp
+(Constitution §2, D3 §3) không đổi. Phương án dự phòng Multi-Zones vẫn còn trong lịch sử git
+(commit `f942392`). Bằng chứng kỹ thuật đầy đủ, từng workaround và hạn chế còn lại:
+`docs/findings/R2-module-federation-nextjs-approuter.md` §13.

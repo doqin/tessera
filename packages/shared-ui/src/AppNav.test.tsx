@@ -14,6 +14,19 @@ describe("AppNav", () => {
     expect(chatLink).toHaveAttribute("href", "/chat");
   });
 
+  it("renders items through a custom LinkComponent when provided", () => {
+    const CustomLink = ({ href, children }: { href: string; children?: React.ReactNode }) => (
+      <span data-testid="custom-link" data-href={href}>
+        {children}
+      </span>
+    );
+    render(<AppNav items={items} activeHref="/chat" LinkComponent={CustomLink} />);
+    const links = screen.getAllByTestId("custom-link");
+    expect(links).toHaveLength(2);
+    expect(links[0]).toHaveAttribute("data-href", "/chat");
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
+
   it("marks the active item with aria-current", () => {
     render(<AppNav items={items} activeHref="/dashboard" />);
     expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute("aria-current", "page");
