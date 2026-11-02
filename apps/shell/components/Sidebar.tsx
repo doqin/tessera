@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AppNav, type AppNavItem } from "@tessera/shared-ui";
 import { useIntegrationStore } from "@tessera/integration-store";
@@ -18,5 +19,5 @@ export function Sidebar() {
     setNavState(pathname);
   }, [pathname, setNavState]);
 
-  return <AppNav items={NAV_ITEMS} activeHref={pathname} />;
+  return <AppNav items={NAV_ITEMS} activeHref={pathname} LinkComponent={Link} />;
 }

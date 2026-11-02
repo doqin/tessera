@@ -10,6 +10,14 @@
   — phương án dự phòng cho rủi ro R2 đã chốt sẵn từ D2 §3/D3 §5. Tài liệu này mô tả kiến trúc
   **sau pivot** (trạng thái implement thật trong repo).
 
+> **Nhánh thay thế `feature/next-13-module-federation`:** nhánh này hạ xuống Next.js 13.5.11 và
+> quay lại Module Federation (`@module-federation/nextjs-mf`) làm cơ chế Integration Layer — Shell
+> có route `/chat` nạp remote `chat_module/ChatModule` (client-only), `AppNav` dùng `next/link`
+> (soft navigation, khôi phục nguyên văn FR2/FR3/AC2/AC3/NFR2 trước khi amend §11), lỗi nạp remote
+> được `RemoteModuleBoundary` xử lý (FR5/AC5). Các phần §2 (rewrites) và `basePath` bên dưới **không
+> áp dụng** trên nhánh đó. Chi tiết và workaround: `docs/findings/R2-module-federation-nextjs-approuter.md`
+> §13. Phần dưới đây mô tả phương án Multi-Zones trên `main`.
+
 ## 1. Kiến trúc tổng quan
 
 Application Shell là **zone chủ** trong mô hình Multi-Zones (Constitution §2, D3 §3 — 3 lớp

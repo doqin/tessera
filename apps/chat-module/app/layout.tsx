@@ -1,22 +1,21 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import { AppHeader, Layout } from "@tessera/shared-ui";
-import { ZoneNav } from "../components/ZoneNav";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const sans = Inter({
+  variable: "--font-app-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const mono = Roboto_Mono({
+  variable: "--font-app-mono",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
   title: "Chat — AI Agent UI",
-  description: "Micro Frontend Chat/Prompt module (Next.js Multi-Zones) — UIT.SE.66",
+  description: "Micro Frontend Chat/Prompt module (remote Module Federation) — UIT.SE.66",
 };
 
 export default function RootLayout({
@@ -26,10 +25,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <Layout header={<AppHeader />} sidebar={<ZoneNav />}>
-          {children}
-        </Layout>
+      <body className={`${sans.variable} ${mono.variable} antialiased`}>
+        <Layout header={<AppHeader />}>{children}</Layout>
       </body>
     </html>
   );

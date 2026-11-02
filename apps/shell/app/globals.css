@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @source "../../../packages/shared-ui/src";
+@source "../../../apps/chat-module/components";
 
 /*
  * Design tokens đồng bộ với packages/shared-ui (Button/Card dùng bg-primary, bg-card, border-border...).
@@ -8,6 +9,9 @@
  * `@source` ở trên bắt buộc: Tailwind v4 mặc định chỉ quét class trong chính app này, không quét
  * vào packages/shared-ui (package ngoài, resolve qua node_modules) — thiếu dòng này thì class chỉ
  * dùng bên trong shared-ui (VD: AppNav) sẽ không có CSS tương ứng được sinh ra.
+ * `@source` thứ hai: Chat module được nạp lúc runtime (Module Federation) nên không có CSS đi kèm
+ * chunk của remote — Shell phải sinh sẵn utility class mà các component expose của remote dùng.
+ * Chỉ là quét văn bản class, không import code của module (Constitution §2).
  */
 :root {
   --background: #ffffff;
@@ -35,8 +39,8 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-border: var(--border);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-app-sans);
+  --font-mono: var(--font-app-mono);
 }
 
 @media (prefers-color-scheme: dark) {

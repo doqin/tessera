@@ -1,8 +1,8 @@
 import ChatModule from "../components/ChatModule";
 
 /**
- * Trang chính của zone Chat module (Next.js Multi-Zones — basePath "/chat", xem next.config.ts).
- * Shell proxy `/chat` → zone này qua rewrites (specs/001-shell-app/plan.md §2).
+ * Trang chạy độc lập của Chat module (dev/test riêng ở :3001). Khi tích hợp, Shell không dùng trang
+ * này mà nạp `ChatModule` qua Module Federation (xem next.config.js).
  */
 export default function Page() {
   return (

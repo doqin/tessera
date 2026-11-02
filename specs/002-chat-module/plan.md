@@ -8,6 +8,10 @@
   `specs/001-shell-app` — xem `docs/findings/R2-module-federation-nextjs-approuter.md`. Tài liệu
   này mô tả kiến trúc sau pivot.
 
+> **Nhánh thay thế `feature/next-13-module-federation`:** Chat module là **remote** Module
+> Federation (expose `./ChatModule`, không còn `basePath: "/chat"`, không còn `ZoneNav`); vẫn chạy
+> độc lập ở :3001 để dev/test. Xem `specs/001-shell-app/plan.md` và findings doc §13.
+
 ## 1. Kiến trúc tổng quan (MVVM — D3 §6)
 
 ```
