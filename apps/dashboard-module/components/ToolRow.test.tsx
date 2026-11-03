@@ -24,16 +24,18 @@ describe("ToolRow", () => {
     expect(screen.getByText(/2026/)).toBeInTheDocument();
   });
 
-  it("renders parameters as formatted JSON", () => {
+  it("renders object parameters as key-value rows", () => {
     render(<ToolRow toolCall={makeToolCall()} />);
     expect(screen.getByText(/Tham số/)).toBeInTheDocument();
-    expect(screen.getByText(/"query": "demo"/)).toBeInTheDocument();
+    expect(screen.getByText("query")).toBeInTheDocument();
+    expect(screen.getByText("demo")).toBeInTheDocument();
   });
 
-  it("renders result as formatted JSON", () => {
+  it("renders object result as key-value rows", () => {
     render(<ToolRow toolCall={makeToolCall()} />);
     expect(screen.getByText(/Kết quả/)).toBeInTheDocument();
-    expect(screen.getByText(/"summary": "done"/)).toBeInTheDocument();
+    expect(screen.getByText("summary")).toBeInTheDocument();
+    expect(screen.getByText("done")).toBeInTheDocument();
   });
 
   it("formats non-JSON result via String fallback", () => {
@@ -41,30 +43,40 @@ describe("ToolRow", () => {
     render(<ToolRow toolCall={toolCall} />);
     expect(screen.getByText("42")).toBeInTheDocument();
   });
+
   it("formats non-JSON-serializable result via String fallback", () => {
     const toolCall = makeToolCall({ result: () => "func" });
     render(<ToolRow toolCall={toolCall} />);
     expect(screen.getByText(/func/)).toBeInTheDocument();
   });
-  it("renders array parameters as JSON", () => {
+
+  it("renders array parameters with index keys and compact JSON values", () => {
     const toolCall = makeToolCall({
       params: { tags: ["a", "b"], nums: [1, 2, 3] },
     });
     const { container } = render(<ToolRow toolCall={toolCall} />);
-    const pre = container.querySelector("pre");
-    expect(pre).not.toBeNull();
-    const text = pre?.textContent ?? "";
+    const text = container.textContent ?? "";
     expect(text).toContain("tags");
+    expect(text).toContain('["a","b"]');
     expect(text).toContain("nums");
-    expect(text).toContain("a");
-    expect(text).toContain("b");
-    expect(text).toContain("1");
-    expect(text).toContain("2");
-    expect(text).toContain("3");
+    expect(text).toContain("[1,2,3]");
   });
+
   it("renders null params as string", () => {
     const toolCall = makeToolCall({ params: null });
     render(<ToolRow toolCall={toolCall} />);
     expect(screen.getByText("null")).toBeInTheDocument();
+  });
+
+  it("shows a waiting placeholder instead of 'undefined' while the result is pending", () => {
+    const toolCall = makeToolCall({ result: undefined });
+    const { container } = render(<ToolRow toolCall={toolCall} />);
+    expect(screen.getByText("Đang chờ kết quả…")).toBeInTheDocument();
+    expect(container.textContent).not.toContain("undefined");
+  });
+
+  it("shows an Error result as its message", () => {
+    render(<ToolRow toolCall={makeToolCall({ result: new Error("tool failed") })} />);
+    expect(screen.getByText("tool failed")).toBeInTheDocument();
   });
 });
