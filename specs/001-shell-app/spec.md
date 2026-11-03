@@ -19,7 +19,7 @@ thống nhất dù các module được build và deploy độc lập.
 - Routing tới `/chat` (Chat module) và `/dashboard` (Dashboard module).
 - Integration Layer: Shell là **host Module Federation**, route `/chat` nạp remote
   `chat_module/ChatModule` lúc runtime (client-only — §11).
-- Áp dụng shared design system (TailwindCSS + shadcn-ui) ở tầng shell.
+- Áp dụng shared design system (dqcss + theme Groq trong `packages/shared-ui`) ở tầng shell.
 - Khởi tạo global store (Zustand) tại Integration Layer, expose: session id hiện tại, tool call
   gần nhất (`lastToolCall`), trạng thái điều hướng.
 
@@ -35,8 +35,8 @@ thống nhất dù các module được build và deploy độc lập.
 - **FR1:** Shell PHẢI render header + sidebar navigation trên mọi route.
 - **FR2:** Khi điều hướng tới `/chat`, Shell PHẢI nạp remote Chat module (Module Federation) và
   mount vào vùng nội dung bằng điều hướng mềm (soft navigation, không full page reload).
-- **FR3:** Khi điều hướng tới `/dashboard`, soft navigation của Next.js App Router áp dụng (hiện là
-  placeholder tĩnh; sẽ là remote thứ hai khi có spec 003).
+- **FR3:** Khi điều hướng tới `/dashboard`, soft navigation của Next.js App Router áp dụng; nội dung
+  là remote thứ hai — Dashboard module (spec 003).
 - **FR4:** Shell PHẢI expose một Zustand store dùng chung (`sessionId`, `lastToolCall`,
   `navState`) tại Integration Layer, chia sẻ singleton giữa Shell và các remote qua cấu hình
   `shared` của Module Federation, đồng thời persist qua `localStorage` để giữ giá trị sau khi
@@ -69,7 +69,7 @@ thống nhất dù các module được build và deploy độc lập.
   (Dashboard — khi có) đang mounted hoặc mount sau đó, then đọc được `lastToolCall` mới nhất (qua
   store singleton chia sẻ; sau khi tải lại trang thì qua `localStorage`). Đã kiểm chứng Shell và
   remote cùng ghi vào một store instance trong browser (2026-11-03); phần đọc live phía Dashboard
-  vẫn chờ spec 003.
+  chờ 003 T015.
 - **AC5:** Given server Chat module không truy cập được, when người dùng điều hướng tới `/chat`,
   then vùng nội dung hiển thị thông báo lỗi nêu tên module kèm nút tải lại trang, header/sidebar vẫn
   hoạt động (`RemoteModuleBoundary` + runtime plugin báo lỗi của Shell).
@@ -83,14 +83,14 @@ thống nhất dù các module được build và deploy độc lập.
 ## 7. Dependencies / References
 
 - Tech stack: Next.js 13.5.11 (App Router) + TypeScript, **Module Federation**
-  (`@module-federation/nextjs-mf`, §11), TailwindCSS/shadcn-ui, Zustand (UIT.SE.66-D2 §4).
+  (`@module-federation/nextjs-mf`, §11), dqcss, Zustand (UIT.SE.66-D2 §4).
 - Kiến trúc: UIT.SE.66-D3 §3–7 (mô hình 3 lớp MFE, MVVM trong module, mô hình chia sẻ state).
 - Constitution: `.specify/constitution.md`.
 
 ## 8. Tiếp theo
 
 `plan.md` và `tasks.md` cho module này được viết ở bước Plan/Tasks của quy trình SDD, sau khi
-spec này qua Clarify + Checklist. Chưa thực hiện Implement khi thiếu `plan.md`/`tasks.md`.
+spec này qua Clarify + Checklist. `plan.md` và `tasks.md` đã có trong thư mục này.
 
 ## 9. Clarify
 
@@ -138,7 +138,7 @@ review theo Quality Management — Project Charter):
 
 **Đánh đổi chấp nhận:** Next.js 13.5/React 18 (không hưởng tính năng 14/15); remote chỉ render phía
 client (không SSR); phụ thuộc vào workaround trên nội bộ của `nextjs-mf`/Next.js (mong manh khi nâng
-phiên bản); Shell phải `@source` thư mục component của remote để sinh CSS. Mô hình 3 lớp
+phiên bản); CSS của remote lấy từ dqcss được import toàn cục ở Shell. Mô hình 3 lớp
 (Constitution §2, D3 §3) không đổi. Phương án dự phòng Multi-Zones vẫn còn trong lịch sử git
 (commit `f942392`). Bằng chứng kỹ thuật đầy đủ, từng workaround và hạn chế còn lại:
 `docs/findings/R2-module-federation-nextjs-approuter.md` §13.

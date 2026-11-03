@@ -63,7 +63,7 @@ tests/                      # Integration test giữa shell và module
   `@module-federation/nextjs-mf@8.8.76`, `webpack@5.99.9` (ghim cả ở root và từng app — `5.112+`
   làm hỏng `@module-federation/enhanced`), `styled-jsx@5.1.1`. Nâng bản nào cũng phải build lại cả
   2 app và kiểm bằng browser thật.
-- Next.js 13.5 chỉ nhận `next.config.js` và `postcss.config.js` (CJS) — không dùng `.ts`/`.mjs`
+- Next.js 13.5 chỉ nhận `next.config.js` (CJS) — không dùng `.ts`/`.mjs`
   . Font dùng `Inter`/`Roboto_Mono`
   (không có Geist).
 - `nextjs-mf` chính thức không hỗ trợ App Router; `next.config.js` của 2 app có workaround (bỏ

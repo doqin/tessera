@@ -7,9 +7,9 @@ Next.js 13.5.11 apps độc lập, ghép lại bằng **Module Federation** (`@m
   `RemoteModuleBoundary` để lỗi nạp remote hiện fallback rõ ràng.
 - `chat-module/` — **remote** (Chat/Prompt module, :3001): expose `./ChatModule`; vẫn chạy độc lập
   để dev/test riêng.
-- `dashboard-module/` — **chưa scaffold**, chờ `specs/003-dashboard-module/spec.md` +
-  `plan.md` + `tasks.md` (theo đúng quy trình SDD — xem `.specify/constitution.md` §8). Dự kiến là
-  remote thứ hai theo cùng mô hình.
+- `dashboard-module/` — **remote** thứ hai (Tool-Invocation/Dashboard module, :3002): expose
+  `./DashboardModule`, Shell nạp ở route `/dashboard`. Spec, plan và tasks ở
+  `specs/003-dashboard-module/`; đang trong giai đoạn Thực hiện.
 
 Chạy cả hai (2 terminal): `npm run dev -w chat-module` và `npm run dev -w shell`, mở
 http://localhost:3000/chat. URL remote của Shell cấu hình qua biến môi trường
@@ -22,8 +22,8 @@ Shell, nên deploy production phải đặt biến này trước khi build.
   ở `next.config.js` của mỗi app chứa các workaround bắt buộc và phiên bản được ghim — đọc
   `docs/findings/R2-module-federation-nextjs-approuter.md` (§13) trước khi nâng Next.js/React/
   webpack hoặc sửa các file config này.
-- `next.config.js` / `postcss.config.js` phải là CommonJS (`.js`) — Next.js 13.5 không nhận `.ts`
-  hay `.mjs`.
+- `next.config.js` phải là CommonJS (`.js`) — Next.js 13.5 không nhận `.ts` hay `.mjs`. Styling dùng
+  `@doqin/dqcss` (không dùng Tailwind/PostCSS).
 - Phương án dự phòng Next.js Multi-Zones (`rewrites()` + `basePath`) đã từng là cấu hình của repo
   này trong giai đoạn Next.js 15.5; xem lịch sử git và `specs/001-shell-app/spec.md` §11.
 

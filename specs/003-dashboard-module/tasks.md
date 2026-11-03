@@ -28,7 +28,7 @@ Nguồn: `plan.md`. `[x]` = đã thực hiện; `[ ]` = giai đoạn Thực hi�
 - [x] **T010** `npm run lint`/`typecheck`/`test`/`build --workspace=apps/dashboard-module` pass.
 - [x] **T011** Thêm `@source "……packages/shared-ui/src"` vào `globals.css` (Tailwind v4 mặc định không
       quét `packages/shared-ui`); Shell thêm `@source` tới `components/` của module này để có CSS cho
-      remote (findings §11, §13.8).
+      remote (findings §11, §13.8). _(Đã bỏ khi chuyển sang dqcss — không còn `@source` trong `globals.css`.)_
 
 ## Còn lại — giai đoạn Thực hiện (đến 21/11/2026)
 

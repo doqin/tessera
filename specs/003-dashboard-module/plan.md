@@ -3,7 +3,7 @@
 - **Nguồn:** `spec.md` (phần Specify đã qua Clarify + Checklist §9–10), `UIT.SE.66-D2-TechStackFoundation`
   §4–7, `UIT.SE.66-D3-ProblemSolutionModel` §3, §5, §7, `specs/002-chat-module/plan.md` §1–2 (mô hình
   remote Module Federation), `docs/findings/R2-module-federation-nextjs-approuter.md` §13.
-- **Trạng thái:** Không bắt đầu implement (chỉ viết tài liệu Specify/Plan/Tasks mới).
+- **Trạng thái:** Đang implement — T001–T011 hoàn thành, còn T012–T016 (xem `tasks.md`).
 
 ## 1. Kiến trúc tổng quan
 
@@ -13,7 +13,6 @@ Dashboard module là **remote Module Federation** thứ hai (host: `apps/shell`,
 ```
 apps/dashboard-module/
 ├── next.config.js             NextFederationPlugin: expose ./DashboardModule + shared (client-only)
-├── postcss.config.js          Tailwind v4 (phải là .js — Next 13.5 không nhận .mjs)
 ├── app/
 │   ├── layout.tsx              AppHeader (packages/shared-ui) — chrome cho trang chạy độc lập
 │   └── page.tsx                trang chạy độc lập (dev/test riêng ở :3002); Shell không dùng trang này
@@ -34,6 +33,4 @@ Dashboard không gọi LLM API (chỉ đọc state từ Integration Layer) — t
 Layer (Constitution §2) và D3 §7. Shell, Chat module và Dashboard module dùng chung một instance
 Zustand store (Module Federation `shared` singleton).
 
-CSS của remote: Shell `@source` thư mục `components/` của module này trong `globals.css`
-(Tailwind v4) — thêm class Tailwind mới trong `components/` là đủ, nhưng đổi tên/di chuyển thư mục
-`components/` phải cập nhật `@source` của Shell.
+CSS của remote: component dùng class `.dq-*` của dqcss; Shell đã import dqcss toàn cục.

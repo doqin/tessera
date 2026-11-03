@@ -37,7 +37,8 @@ Next.js 13.5.11 + Module Federation — xem `docs/findings/R2-module-federation-
       `docs/findings/R2-module-federation-nextjs-approuter.md` (§1–12 lần Next 15.5, §13 lần Next
       13.5.11).
 - [x] **T012** Sửa Tailwind v4 không quét `packages/shared-ui` (`@source` trong `globals.css`), thêm
-      `@source` tới components của chat-module để Shell sinh CSS cho remote.
+      `@source` tới components của chat-module để Shell sinh CSS cho remote. _(Đã bỏ khi chuyển sang dqcss —
+      không còn `@source` trong `globals.css`.)_
 - [x] **T018 (mới)** Hạ cấp Next.js 15.5 → **13.5.11** (React 19 → 18.2) và ghim phiên bản:
       `webpack` 5.99.9 (root + từng app), `styled-jsx` 5.1.1, `@module-federation/nextjs-mf`
       8.8.76; đổi `next.config.ts`/`postcss.config.mjs` → `.js` (CJS); font Geist → Inter/Roboto
@@ -50,9 +51,10 @@ Next.js 13.5.11 + Module Federation — xem `docs/findings/R2-module-federation-
       `NEXT_PUBLIC_CHAT_MODULE_URL` ở Vercel project settings của `shell` trỏ domain thật của
       chat-module **trước khi build Shell** (URL remote được nhúng lúc build). Kiểm tra CORS/header
       cho `remoteEntry.js` và chunk của remote khi khác origin.
-- [ ] **T014** Xây `/dashboard` thật, thành remote Module Federation thứ hai
-      (`apps/dashboard-module`, :3002) — chờ `specs/003-dashboard-module/spec.md` + `plan.md` +
-      `tasks.md`.
+- [x] **T014** Xây `/dashboard` thật, thành remote Module Federation thứ hai
+      (`apps/dashboard-module`, :3002). _(Đã mount qua `apps/shell/components/RemoteDashboard.tsx`,
+      commit `482e645`; module làm theo `specs/003-dashboard-module/` — T001–T011 đã xong, còn lại xem
+      spec 003.)_
 - [ ] **T015** Giải quyết/ghi nhận các hạn chế còn lại của MF (plan §7): request thừa
       `/autostatic/...` (404), shared module thiếu `version` (cảnh báo dev), xem xét SSR cho remote
       nếu cần.

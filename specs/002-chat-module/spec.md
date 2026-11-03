@@ -71,7 +71,7 @@ prompt và xem phản hồi streaming, bao gồm cả khi Agent gọi tool.
 
 ## 7. Dependencies / References
 
-- Tech stack: Next.js 13.5.11 (App Router) + TypeScript, **Module Federation** (§11), TailwindCSS/shadcn-ui, Zustand, Axios/fetch, Groq API (mặc định, free tier) /
+- Tech stack: Next.js 13.5.11 (App Router) + TypeScript, **Module Federation** (§11), dqcss, Zustand, Axios/fetch, Groq API (mặc định, free tier) /
   OpenAI API / Claude API (production-target) — dữ liệu mẫu/dummy — UIT.SE.66-D2 §4.
 - Kiến trúc: UIT.SE.66-D3 §3–7 (mô hình 3 lớp, MVVM, mô hình chia sẻ state — ví dụ cụ thể mục 7
   minh hoạ đúng luồng Chat → Dashboard qua `lastToolCall`).
@@ -82,7 +82,7 @@ prompt và xem phản hồi streaming, bao gồm cả khi Agent gọi tool.
 ## 8. Tiếp theo
 
 `plan.md` và `tasks.md` cho module này được viết ở bước Plan/Tasks của quy trình SDD, sau khi
-spec này qua Clarify + Checklist. Chưa thực hiện Implement khi thiếu `plan.md`/`tasks.md`.
+spec này qua Clarify + Checklist. `plan.md` và `tasks.md` đã có trong thư mục này.
 
 ## 9. Clarify
 

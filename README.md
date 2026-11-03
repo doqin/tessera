@@ -29,7 +29,7 @@ specs/                      # Spec Kit — 1 thư mục / 1 module
   002-chat-module/spec.md
   003-dashboard-module/
 apps/                       # Next.js apps độc lập (shell, chat-module, dashboard-module)
-packages/shared-ui/         # Design system dùng chung (TailwindCSS/shadcn-ui)
+packages/shared-ui/         # Design system dùng chung (dqcss — `@doqin/dqcss`)
 tools/llm-trial/            # Script thử kết nối LLM API bằng dữ liệu mẫu
 docs/reference/             # Project Charter, D1–D3, Tech Stack
 tests/                      # Integration test giữa shell và module
@@ -40,7 +40,7 @@ tests/                      # Integration test giữa shell và module
 Next.js **13.5.11** (App Router) + TypeScript · **Module Federation**
 (`@module-federation/nextjs-mf`; Next.js Multi-Zones là phương án dự phòng) — hạ từ Next.js 15 vì
 Module Federation chưa chạy được ở bản mới hơn, xem
-`docs/findings/R2-module-federation-nextjs-approuter.md` · TailwindCSS + shadcn-ui · Zustand ·
+`docs/findings/R2-module-federation-nextjs-approuter.md` · dqcss (`@doqin/dqcss`) · Zustand ·
 Axios · ESLint + Prettier · Jest + React Testing Library · GitHub Actions · Vercel. Chi tiết:
 `docs/reference/UIT.SE.66 - Tech Stack.xlsx`.
 

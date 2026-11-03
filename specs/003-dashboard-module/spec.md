@@ -1,6 +1,6 @@
 # Spec: Tool-Invocation/Dashboard Module (003-dashboard-module)
 
-- **Status:** Not started (phầnSpecify — mới viết branch `feature/003-dashboard-module-spec`)
+- **Status:** Implementing — T001–T011 hoàn thành, còn T012–T016 (xem `tasks.md`)
 - **Liên quan:** UIT.SE.66-D3 §3, §7 (Tool-Invocation/Dashboard module), UIT.SE.66-D1 §4, UIT.SE.66-D2
   (Tech Stack), `specs/001-shell-app/spec.md` §9 (Clarify) và `specs/002-chat-module/plan.md` §2
   (mô hình remote Module Federation)
@@ -83,16 +83,14 @@ thao tác của Agent ngay trên UI — không phải chỉ nhìn vào log giao 
 ## 7. Dependencies / References
 
 - Tech stack: Next.js 13.5.11 (App Router) + TypeScript, **Module Federation** (`nextjs-mf`
-  8.8.76, client-only), `@tessera/integration-store` + Zustand, `packages/shared-ui` (dqcss theme),
-  TailwindCSS v4 + shadcn-ui style.
+  8.8.76, client-only), `@tessera/integration-store` + Zustand, `packages/shared-ui` (dqcss theme).
 - Kiến trúc: UIT.SE.66-D3 §3, §7 (dòng luồng Chat → Dashboard qua `lastToolCall`), Constitution
   `.specify/constitution.md` §2, §8.
 - Mô hình remote MF: `specs/002-chat-module/plan.md` §2 + `docs/findings/R2-module-federation-nextjs-approuter.md` §13.
 
 ## 8. Tiếp theo
 
-`plan.md` và `tasks.md` cho module này viết ở bước Plan/Tasks (quy trình SDD), sau khi spec qua
-Clarify + Checklist. Chưa thực hiện Implement khi thiếu `plan.md`/`tasks.md`.
+`plan.md` và `tasks.md` cho module này đã có; giai đoạn Thực hiện chạy theo `tasks.md`.
 
 ## 9. Clarify
 
@@ -127,11 +125,9 @@ Dashboard module là **remote Module Federation** thứ hai trên Next.js 13.5.1
   federation ở client compiler, bỏ guard `appDirEnabled` tạm thời.
 - `DashboardModule.tsx` là Client Component (`"use client"`) — bắt buộc vì Shell nạp client-only
   (`ssr: false`).
-- `apps/shell/app/dashboard/page.tsx` là placeholder tĩnh; route `/dashboard` mount
+- `apps/shell/app/dashboard/page.tsx` là route `/dashboard`, mount
   `<RemoteDashboard />` vào vùng nội dung của Shell (FR2/FR3 soft navigation).
 - `app/layout.tsx` của module chỉ phục vụ trang chạy độc lập (dev/test :3002); chrome/header/sidebar
   do Shell chịu trách nhiệm.
-- CSS của remote: Shell `@source` thư mục `components/` của module này trong `globals.css`
-  (Tailwind v4) — thêm class Tailwind mới trong `components/` là đủ, nhưng đổi tên/di chuyển
-  thư mục `components/` phải cập nhật `@source` của Shell.
+- CSS của remote: component dùng class `.dq-*` của dqcss; Shell đã import dqcss toàn cục.
 - Cơ chế đang dùng: Chat module cập nhật `lastToolCall` → Dashboard subscribe store và re-render.
