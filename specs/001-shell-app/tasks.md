@@ -46,11 +46,9 @@ Next.js 13.5.11 + Module Federation — xem `docs/findings/R2-module-federation-
 
 ## Còn lại — chờ giai đoạn Thực hiện / phụ thuộc
 
-- [ ] **T013** Deploy `apps/shell` + `apps/chat-module` lên Vercel (cần tài khoản Vercel của chủ
-      đồ án — Agent không có quyền thực hiện). Deploy **chat-module trước**, rồi đặt
-      `NEXT_PUBLIC_CHAT_MODULE_URL` ở Vercel project settings của `shell` trỏ domain thật của
-      chat-module **trước khi build Shell** (URL remote được nhúng lúc build). Kiểm tra CORS/header
-      cho `remoteEntry.js` và chunk của remote khi khác origin.
+- [x] **T013** Deploy `apps/shell` + `apps/chat-module` (+ `apps/dashboard-module`) lên Vercel. Đã xác nhận
+      trên https://tessera-shell.vercel.app: Shell nạp `remoteEntry.js` từ `tessera-chat-module.vercel.app`
+      và `tessera-dashboard-module.vercel.app` (cross-origin, không lỗi CORS). _(Deploy do chủ đồ án thực hiện.)_
 - [x] **T014** Xây `/dashboard` thật, thành remote Module Federation thứ hai
       (`apps/dashboard-module`, :3002). _(Đã mount qua `apps/shell/components/RemoteDashboard.tsx`,
       commit `482e645`; module làm theo `specs/003-dashboard-module/` — T001–T011 đã xong, còn lại xem
