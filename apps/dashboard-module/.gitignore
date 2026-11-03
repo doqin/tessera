@@ -1,0 +1,11 @@
+# Gitignore cho app Next.js (đã trong root .gitignore)
+.next/
+build/
+*.tsbuildinfo
+npm-debug.log*
+
+# không commit module khởi tạo Protractor
+e2e/
+
+# cài đặt module (npm workspace sẽ handle)
+node_modules/
