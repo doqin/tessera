@@ -4,3 +4,9 @@ declare module "chat_module/ChatModule" {
   const ChatModule: ComponentType;
   export default ChatModule;
 }
+
+declare module "dashboard_module/DashboardModule" {
+  import type { ComponentType } from "react";
+  const DashboardModule: ComponentType;
+  export default DashboardModule;
+}

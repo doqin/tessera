@@ -1,0 +1,46 @@
+# Chạy cả 3 service cục bộ: `docker compose up --build`  →  Shell tại http://localhost:3000
+#
+# Remote (chat/dashboard) được TRÌNH DUYỆT nạp trực tiếp qua localhost nên phải publish đúng
+# cổng 3001/3002 ra máy host; NEXT_PUBLIC_*_MODULE_URL giữ mặc định (localhost).
+# Bind-mount mã nguồn để hot reload; volume ẩn danh che node_modules của image khỏi bị đè.
+# WATCHPACK_POLLING: file watcher không nhận sự kiện qua bind-mount Windows/macOS.
+
+x-dev-service: &dev-service
+  build:
+    context: .
+    dockerfile: Dockerfile.dev
+  environment:
+    WATCHPACK_POLLING: "true"
+    CHOKIDAR_USEPOLLING: "true"
+  restart: unless-stopped
+
+x-dev-volumes: &dev-volumes
+  - ./apps:/repo/apps
+  - ./packages:/repo/packages
+  - /repo/node_modules
+  - /repo/apps/shell/node_modules
+  - /repo/apps/chat-module/node_modules
+  - /repo/apps/dashboard-module/node_modules
+  - /repo/apps/shell/.next
+  - /repo/apps/chat-module/.next
+  - /repo/apps/dashboard-module/.next
+
+services:
+  chat:
+    <<: *dev-service
+    command: npm run dev --workspace=apps/chat-module
+    ports: ["3001:3001"]
+    volumes: *dev-volumes
+
+  dashboard:
+    <<: *dev-service
+    command: npm run dev --workspace=apps/dashboard-module
+    ports: ["3002:3002"]
+    volumes: *dev-volumes
+
+  shell:
+    <<: *dev-service
+    command: npm run dev --workspace=apps/shell
+    ports: ["3000:3000"]
+    volumes: *dev-volumes
+    depends_on: [chat, dashboard]

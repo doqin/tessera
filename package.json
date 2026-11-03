@@ -12,7 +12,8 @@
     "format": "prettier --check .",
     "format:write": "prettier --write .",
     "test": "jest",
-    "typecheck": "tsc --build --pretty"
+    "typecheck": "tsc --build --pretty",
+    "dev:all": "node scripts/dev-all.mjs"
   },
   "overrides": {
     "schema-utils": "4.3.2"
