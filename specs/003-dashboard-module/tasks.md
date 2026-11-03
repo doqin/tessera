@@ -54,5 +54,16 @@ Nguồn: `plan.md`. `[x]` = đã thực hiện; `[ ]` = giai đoạn Thực hi�
         hướng sang `/chat` vẫn hoạt động. Khởi động lại remote rồi tải lại → module hoạt động.
       _Chưa kiểm chứng: re-render live khi Dashboard đang mounted và store đổi (Shell không đặt Chat và
       Dashboard trên cùng một màn hình); phần này được bao phủ bởi test Jest ở trên._
-- [ ] **T016** Kiểm thử NFR thực đo (First Load <3s, điều hướng <300ms, Lighthouse ≥80) — cần môi
-      trường deploy thật (sau T013 của Shell scope).
+- [x] **T016** Kiểm thử NFR thực đo trên https://tessera-shell.vercel.app (2026-11-04, trình duyệt thật
+      + Lighthouse trên Edge headless):
+      - NFR1 First Load: `/chat` `loadEventEnd` ≈ 201 ms, remote Chat sẵn sàng ≈ 198 ms (cache trình duyệt
+        đã ấm). Lighthouse LCP: desktop 1.4 s; mobile **4.0 s** (không đạt <3 s khi mô phỏng mobile).
+      - NFR2 điều hướng mềm `/chat` → `/dashboard`: remote đã cache 5–9 ms (5 lần lặp, đạt <300 ms);
+        lần đầu khi remote chưa nạp **406–421 ms** (2 lần, vượt 300 ms). Phần lớn là tải
+        `remoteEntry.js` của `tessera-dashboard-module.vercel.app` (~330 ms).
+      - NFR3 Lighthouse Performance: `/chat` desktop 96, mobile 87; `/dashboard` desktop 100, mobile 99
+        (đạt ≥80).
+      - Shell trên Vercel nạp đúng remote deploy: `tessera-chat-module.vercel.app` và
+        `tessera-dashboard-module.vercel.app`; điều hướng mềm không reload.
+      _Cần quyết định: NFR1 mobile và NFR2 lần nạp đầu của remote dashboard chưa đạt ngưỡng; đề xuất cache
+      header cho `remoteEntry.js` (đang không có hash) hoặc prefetch remote khi hover link Dashboard._
