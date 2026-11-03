@@ -13,7 +13,6 @@
 ```
 apps/chat-module/
 ├── next.config.js             NextFederationPlugin: exposes ./ChatModule + shared (client-only)
-├── postcss.config.js          Tailwind v4 (phải là .js — Next 13.5 không nhận .mjs)
 ├── app/
 │   ├── layout.tsx              AppHeader (packages/shared-ui) — chrome cho trang chạy độc lập
 │   └── page.tsx                trang chạy độc lập (dev/test riêng ở :3001); Shell không dùng trang này
@@ -42,9 +41,8 @@ shared: ... })`. Cùng nền tảng/phiên bản/workaround với Shell (Next.js
   (`ssr: false`) và vì cần `useState`/hooks cho ViewModel.
 - Không còn `basePath`/`ZoneNav` (của giai đoạn Multi-Zones). Chrome (header/sidebar) do Shell
   chịu trách nhiệm; `app/layout.tsx` của module chỉ phục vụ trang chạy độc lập.
-- Remote chunk không mang CSS: Shell `@source` thư mục `components/` của module này trong
-  `globals.css` để sinh utility class — **thêm class Tailwind mới trong `components/` là đủ, nhưng
-  đổi tên/di chuyển thư mục `components/` phải cập nhật `@source` của Shell**.
+- Remote chunk không mang CSS: component dùng class `.dq-*` của dqcss, và Shell đã import dqcss toàn
+  cục nên không cần cấu hình thêm.
 
 ## 3. Model — `chatService.ts`
 
@@ -73,7 +71,7 @@ shared: ... })`. Cùng nền tảng/phiên bản/workaround với Shell (Next.js
 - `PromptInput`: input + submit, disabled chỉ khi rỗng (không disabled khi đang chờ — Clarify §9).
 - `MessageBubble`: hiển thị message; hỗ trợ trạng thái "phản hồi bị ngắt" (Clarify §9) và
   "lỗi/timeout" (Clarify §9) qua một `status` field trên `Message`.
-- Dùng Tailwind + style đồng bộ `packages/shared-ui` (Button, Card).
+- Dùng class dqcss (`.dq-*`) + style đồng bộ `packages/shared-ui` (Button, Card).
 
 ## 6. Testing strategy
 

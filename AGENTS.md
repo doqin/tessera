@@ -19,8 +19,8 @@ If this file and `CLAUDE.md` ever differ, `CLAUDE.md` and the constitution win. 
   `@module-federation/nextjs-mf` `8.8.76` (pinned — do not upgrade casually). See
   `docs/findings/R2-module-federation-nextjs-approuter.md` §13 before touching versions or
   `next.config.js`.
-- **Config files:** `next.config.js` and `postcss.config.js` must be CommonJS `.js`; Next.js 13.5
-  does not accept `.ts`/`.mjs` for them.
+- **Config files:** `next.config.js` must be CommonJS `.js`; Next.js 13.5 does not accept
+  `.ts`/`.mjs` for it.
 - **Install:** use an NTFS drive. `npm install` fails on exFAT because npm workspaces need
   symlinks/junctions.
 - **Before considering work done:**

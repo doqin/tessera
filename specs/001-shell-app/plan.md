@@ -16,14 +16,13 @@ Integration Layer):
 ```
 apps/shell/                      ← Application Shell (host, :3000)
 ├── next.config.js                NextFederationPlugin (remotes + shared) + workaround App Router
-├── postcss.config.js             Tailwind v4 (phải là .js — Next 13.5 không nhận .mjs)
 ├── mf/errorRemotePlugin.js       runtime plugin: lỗi nạp remote → component ném lỗi cho boundary
 ├── types/remotes.d.ts            khai báo kiểu cho module remote `chat_module/ChatModule`
 ├── app/
 │   ├── layout.tsx                RootLayout — AppHeader + Sidebar (packages/shared-ui)
 │   ├── page.tsx                  redirect → /chat
 │   ├── chat/page.tsx             mount <RemoteChat /> vào vùng nội dung
-│   └── dashboard/page.tsx        placeholder "chưa triển khai" (003 chưa có spec)
+│   └── dashboard/page.tsx        mount <RemoteDashboard /> (remote 003, xem specs/003-dashboard-module)
 └── components/
     ├── Sidebar.tsx               "use client", usePathname() + sync navState; AppNav + next/link
     ├── RemoteChat.tsx            next/dynamic(loadChatRemote, { ssr: false }) trong boundary
@@ -69,10 +68,9 @@ next/dynamic ghi nhớ kết quả lỗi trong phiên, reset state boundary là 
 **Điều hướng:** `AppNav` (`packages/shared-ui`) nhận prop `LinkComponent` (mặc định `<a>`); Sidebar
 truyền `next/link` → soft navigation giữa `/chat` và `/dashboard`, không reload (FR2/FR3).
 
-**CSS của remote:** chunk remote không mang CSS đi kèm; `apps/shell/app/globals.css` có
-`@source "../../../apps/chat-module/components"` (và `packages/shared-ui/src`) để Tailwind v4 sinh
-sẵn utility class mà component của remote dùng. Chỉ quét text class, không import code (Constitution
-§2). Đánh đổi: Shell phải biết đường dẫn source của remote lúc build.
+**CSS của remote:** Shell import `@doqin/dqcss` và `packages/shared-ui/src/theme.css` toàn cục trong
+`apps/shell/app/globals.css`, nên class `.dq-*` mà component của remote dùng đã có sẵn trong trang.
+Không cần cấu hình `@source` (đã bỏ khi chuyển từ Tailwind sang dqcss).
 
 ## 3. Integration Layer — Zustand store dùng chung
 
@@ -115,9 +113,9 @@ Model/service riêng. `Sidebar.tsx` là ViewModel-glue: đọc `usePathname()`, 
 
 | Nhóm        | Lựa chọn cụ thể                                                                                                                                                                         |
 | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Next.js     | **13.5.11**, App Router; React 18.2; `next.config.js` + `postcss.config.js` (CJS)                                                                                                       |
+| Next.js     | **13.5.11**, App Router; React 18.2; `next.config.js` (CJS)                                                                                                                             |
 | MFE         | Module Federation: `@module-federation/nextjs-mf` 8.8.76 + `webpack` 5.99.9; dự phòng Multi-Zones (xem §11 của spec)                                                                    |
-| Styling     | TailwindCSS v4 (CSS-first; `@source` cho `packages/shared-ui` và components của remote) + component phong cách shadcn-ui (viết tay); font `Inter`/`Roboto_Mono` (Geist không có ở 13.5) |
+| Styling     | `@doqin/dqcss` (import toàn cục trong `globals.css`) + theme Groq trong `packages/shared-ui`; font `Inter`/`Roboto_Mono` (Geist không có ở 13.5)                                       |
 | State       | Zustand (+ `persist` middleware, localStorage)                                                                                                                                          |
 | Test        | Jest + React Testing Library, coverage ≥70% (Constitution §3)                                                                                                                           |
 | Lint/Format | ESLint config gốc (`eslint.config.mjs`) + Prettier — không tạo config riêng cho app                                                                                                     |
@@ -147,6 +145,6 @@ Model/service riêng. `Sidebar.tsx` là ViewModel-glue: đọc `usePathname()`, 
 
 ## 8. Ngoài phạm vi lần thực hiện nền tảng này
 
-- Không xây `/dashboard` thật (003 chưa có spec) — chỉ placeholder tĩnh.
+- `/dashboard` là remote riêng (`apps/dashboard-module`) — chi tiết ở `specs/003-dashboard-module/`.
 - Không deploy Vercel thật (cần tài khoản của chủ đồ án) — xem `tasks.md` T013.
 - Chưa có integration test tự động Shell ⇄ remote và chưa đo NFR1/NFR3 (T016, T017).
