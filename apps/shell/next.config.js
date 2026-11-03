@@ -4,6 +4,8 @@ process.env.NEXT_PRIVATE_LOCAL_WEBPACK = "true";
 const NextFederationPlugin = require("@module-federation/nextjs-mf");
 
 const CHAT_MODULE_URL = process.env.NEXT_PUBLIC_CHAT_MODULE_URL ?? "http://localhost:3001";
+const DASHBOARD_MODULE_URL =
+  process.env.NEXT_PUBLIC_DASHBOARD_MODULE_URL ?? "http://localhost:3002";
 
 /**
  * Shell (host) — Module Federation trên Next.js 13.5.11 (App Router). Thử lại phương án chính của
@@ -24,7 +26,11 @@ const nextConfig = {
     if (options.isServer) {
       // Remote chỉ nạp ở client (next/dynamic, ssr: false). Compiler server/edge vẫn parse
       // import() này nên phải cho nó resolve về module rỗng.
-      config.resolve.alias = { ...config.resolve.alias, "chat_module/ChatModule": false };
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        "chat_module/ChatModule": false,
+        "dashboard_module/DashboardModule": false,
+      };
       return config;
     }
 
@@ -41,6 +47,7 @@ const nextConfig = {
         filename: "static/chunks/remoteEntry.js",
         remotes: {
           chat_module: `chat_module@${CHAT_MODULE_URL}/_next/static/chunks/remoteEntry.js`,
+          dashboard_module: `dashboard_module@${DASHBOARD_MODULE_URL}/_next/static/chunks/remoteEntry.js`,
         },
         // Chia sẻ đúng bản React vendored của Next (không phải React npm) — App Router cần bản
         // này, chia sẻ React npm làm hỏng chính runtime của Next (`use is not a function`).
