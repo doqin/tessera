@@ -1,0 +1,22 @@
+# Image dev dùng chung cho Shell / Chat module / Dashboard module (npm workspaces).
+# Dùng qua docker-compose.yml — mỗi service chỉ khác lệnh chạy (next dev -p <port>).
+# node:slim (glibc) thay vì alpine: SWC của Next 13.5 cần binary glibc.
+FROM node:20-slim
+
+WORKDIR /repo
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Cài dependency trước (cache layer): chỉ copy manifest của từng workspace.
+COPY package.json package-lock.json ./
+COPY apps/shell/package.json apps/shell/package.json
+COPY apps/chat-module/package.json apps/chat-module/package.json
+COPY apps/dashboard-module/package.json apps/dashboard-module/package.json
+COPY packages/integration-store/package.json packages/integration-store/package.json
+COPY packages/shared-ui/package.json packages/shared-ui/package.json
+# `npm ci`: cài đúng theo package-lock.json (đã gồm workspace dashboard-module).
+RUN npm ci --no-audit --no-fund
+
+# Mã nguồn được bind-mount lúc chạy (xem docker-compose.yml); COPY ở đây để image tự chạy được.
+COPY . .
+
+CMD ["npm", "run", "dev", "--workspace=apps/shell"]

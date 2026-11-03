@@ -52,6 +52,22 @@ npm run lint --workspaces --if-present
 npm test --workspaces --if-present
 ```
 
+### Chạy toàn bộ service cục bộ
+
+Shell (`:3000`), Chat module (`:3001`), Dashboard module (`:3002`) — mở <http://localhost:3000>.
+
+```bash
+# Cách 1: Node (cần `npm install` trước). Ctrl+C dừng tất cả; `-- --only=shell,chat` để chạy một phần.
+npm run dev:all
+
+# Cách 2: Docker (không cần cài Node/npm trên máy host)
+docker compose up --build
+docker compose down
+```
+
+Remote được trình duyệt nạp trực tiếp qua `localhost`, nên 3 cổng trên phải rảnh. Đổi URL remote bằng
+`NEXT_PUBLIC_CHAT_MODULE_URL` / `NEXT_PUBLIC_DASHBOARD_MODULE_URL` (Shell).
+
 Thử kết nối LLM API (dữ liệu mẫu, không dùng dữ liệu thật — xem `tools/llm-trial/README.md`):
 
 ```bash
