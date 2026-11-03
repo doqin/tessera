@@ -40,10 +40,19 @@ Nguồn: `plan.md`. `[x]` = đã thực hiện; `[ ]` = giai đoạn Thực hi�
       `ToolRow` hiện "Đang chờ kết quả…" thay vì `undefined`. Có testcase cho cả hai.
 - [x] **T014** Coverage module dashboard (`components/` 100%, `hooks/` 100% statements,
       `services/` ≥97%); toàn repo 94.6% statements khi chạy `npx jest --coverage`.
-- [ ] **T015** Integration test Shell ⇄ Dashboard (nạp remote, điều hướng không reload, fallback khi
-      remote down, store singleton). _Đã có một phần: `tests/dashboard-chat.integration.test.tsx`
-      kiểm chứng Chat ghi `lastToolCall` và Dashboard đọc live qua store chung trong cùng cây React.
-      Phần còn lại (MF, điều hướng, fallback) cần trình duyệt thật — dùng chung T016 của Shell scope
-      (001 spec T016)._
+- [x] **T015** Integration test Shell ⇄ Dashboard (nạp remote, điều hướng không reload, fallback khi
+      remote down, store singleton). Đã kiểm chứng:
+      - Jest: `tests/dashboard-chat.integration.test.tsx` — Chat ghi `lastToolCall`, Dashboard đọc live
+        qua store chung trong cùng cây React.
+      - Browser (2026-11-04, dev servers): `/chat` gửi prompt → `/dashboard` (điều hướng mềm, không
+        reload) hiện đúng tool call; hai lần gửi liên tiếp đều hiện giá trị mới nhất; tải lại trang
+        vẫn giữ `lastToolCall` (localStorage).
+      - Store singleton: `shell`, `chat_module`, `dashboard_module` cùng trỏ một `shareScopeMap.default`
+        và một entry `@tessera/integration-store@0.1.0` (`from: shell`, `loaded: true`).
+      - Fallback: dừng server `dashboard_module` (:3002) rồi tải `/dashboard` → Shell hiện thông báo
+        "Không tải được module dashboard_module" kèm nút tải lại; header/sidebar giữ nguyên và điều
+        hướng sang `/chat` vẫn hoạt động. Khởi động lại remote rồi tải lại → module hoạt động.
+      _Chưa kiểm chứng: re-render live khi Dashboard đang mounted và store đổi (Shell không đặt Chat và
+      Dashboard trên cùng một màn hình); phần này được bao phủ bởi test Jest ở trên._
 - [ ] **T016** Kiểm thử NFR thực đo (First Load <3s, điều hướng <300ms, Lighthouse ≥80) — cần môi
       trường deploy thật (sau T013 của Shell scope).
