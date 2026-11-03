@@ -1,7 +1,7 @@
 /** @type {import('jest').Config} */
 module.exports = {
   testEnvironment: "jsdom",
-  roots: ["<rootDir>/packages", "<rootDir>/apps"],
+  roots: ["<rootDir>/packages", "<rootDir>/apps", "<rootDir>/tests"],
   modulePathIgnorePatterns: ["<rootDir>/packages/.*/dist", "<rootDir>/apps/.*/\\.next"],
   transform: {
     "^.+\\.tsx?$": ["ts-jest", { tsconfig: "<rootDir>/tsconfig.base.json" }],
