@@ -36,12 +36,16 @@ Nguồn: `plan.md`. `[x]` = đã thực hiện (phiên "D2 Foundation Setup" và
 
 ## Còn lại — giai đoạn Thực hiện (đến 21/11/2026)
 
-- [ ] **T012** Nối `chatService.ts` với Groq API thật (`/chat/completions`, theo mẫu
-      `tools/llm-trial/test-llm-connection.mjs`), dùng `GROQ_API_KEY` từ `.env.local`. _(Lưu ý: biến
-      môi trường chạy trong remote đang được Shell nạp — cân nhắc key phía server/route handler, vì
-      code của remote chạy ở trình duyệt của Shell.)_
-- [ ] **T013** Streaming thật (SSE/chunked) thay cho mock trả nguyên khối — cập nhật
-      `MessageBubble` tăng dần theo chunk (FR3, AC2).
+- [x] **T012** Nối Groq API thật qua route handler `apps/chat-module/app/api/chat/route.ts`
+      (logic ở `services/groqProxy.ts`): `GROQ_API_KEY` (+ tuỳ chọn `GROQ_MODEL`,
+      `CHAT_ALLOWED_ORIGIN`) chỉ nằm phía server (`.env.local`, xem `.env.local.example`); validate
+      prompt (≤4000 ký tự), không chuyển tiếp body lỗi của Groq, CORS cho Shell gọi cross-origin.
+      `chatService.sendPrompt` gọi `${NEXT_PUBLIC_CHAT_API_URL ?? http://localhost:3001}/api/chat`.
+      _(Đã kiểm: unit test + `next build/start` — OPTIONS 204, thiếu key → 500. Chưa gọi thử Groq thật
+      vì chưa có key trong môi trường; cần chạy tay với key trước khi coi là nghiệm thu.)_
+- [x] **T013** Streaming thật: route proxy SSE của Groq (`stream: true`), `chatService` đọc từng
+      chunk và gọi `onDelta`; `useChatViewModel` cập nhật một message agent tại chỗ nên
+      `MessageBubble` tăng dần theo chunk (FR3, AC2). _(`toolCall` vẫn là mẫu cố định đến T016.)_
 - [ ] **T014** Xử lý lỗi/timeout thật (15s, Clarify §9) — hiển thị message lỗi trong danh sách.
 - [ ] **T015** Xử lý streaming bị ngắt giữa chừng (Clarify §9) — giữ partial content + chỉ báo.
 - [ ] **T016** Tool-call detection thật từ response Groq (không còn mock `toolCall` cố định) →
