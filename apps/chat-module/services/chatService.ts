@@ -16,11 +16,19 @@ export interface SendPromptOptions {
 // (route handler `app/api/chat/route.ts` giữ GROQ_API_KEY phía server). Đặt khi build/deploy.
 const CHAT_API_URL = `${process.env.NEXT_PUBLIC_CHAT_API_URL ?? "http://localhost:3001"}/api/chat`;
 
+/** Timeout 15s (spec Clarify §9): áp dụng cho lúc chờ phản hồi đầu tiên và cho mỗi khoảng lặng giữa 2 chunk. */
+export const STREAM_TIMEOUT_MS = 15_000;
+
 function createId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();
   }
   return `id-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+/** Phân tích 1 dòng SSE: `[DONE]` là tín hiệu kết thúc hợp lệ của stream. */
+function isDoneLine(line: string): boolean {
+  return line.startsWith("data:") && line.slice(5).trim() === "[DONE]";
 }
 
 /** Lấy phần nội dung tăng dần từ một dòng SSE `data: {...}` của Groq (OpenAI shape). */
@@ -39,43 +47,74 @@ function parseSseLine(line: string): string {
 /**
  * Gửi prompt tới `/api/chat` và đọc phản hồi streaming (SSE). Trả về message hoàn chỉnh khi
  * stream kết thúc; `onDelta` được gọi theo từng chunk để View cập nhật dần (FR3, AC2).
- * Timeout/lỗi giữa chừng: T014/T015.
+ *
+ * Reject khi: HTTP lỗi, quá 15s không có dữ liệu (timeout), mất kết nối giữa chừng, hoặc stream
+ * đóng mà không có `[DONE]` (bị cắt ngang). Phần nội dung đã nhận vẫn đã được đẩy qua `onDelta`
+ * nên ViewModel giữ được partial content (T015).
  */
 export async function sendPrompt(
   promptText: string,
   { onDelta, signal }: SendPromptOptions = {},
 ): Promise<ChatServiceResponse> {
-  const response = await fetch(CHAT_API_URL, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ prompt: promptText }),
-    signal,
-  });
-  if (!response.ok || !response.body) {
-    throw new Error(`Chat API lỗi (${response.status}).`);
-  }
+  const controller = new AbortController();
+  if (signal?.aborted) controller.abort();
+  else signal?.addEventListener("abort", () => controller.abort(), { once: true });
 
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
+  let timedOut = false;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const armTimeout = () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, STREAM_TIMEOUT_MS);
+  };
+
   let content = "";
-
-  const consume = (line: string) => {
-    const delta = parseSseLine(line.trim());
+  let finished = false;
+  const consume = (rawLine: string) => {
+    const line = rawLine.trim();
+    if (isDoneLine(line)) finished = true;
+    const delta = parseSseLine(line);
     if (!delta) return;
     content += delta;
     onDelta?.(delta);
   };
 
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
-    lines.forEach(consume);
+  try {
+    armTimeout();
+    const response = await fetch(CHAT_API_URL, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ prompt: promptText }),
+      signal: controller.signal,
+    });
+    if (!response.ok || !response.body) {
+      throw new Error(`Chat API lỗi (${response.status}).`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      armTimeout();
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      lines.forEach(consume);
+    }
+    consume(buffer + decoder.decode());
+  } catch (error) {
+    if (timedOut) throw new Error(`Chat API không phản hồi sau ${STREAM_TIMEOUT_MS / 1000}s.`);
+    throw error;
+  } finally {
+    clearTimeout(timer);
   }
-  consume(buffer + decoder.decode());
+
+  if (!finished) throw new Error("Phản hồi bị ngắt giữa chừng.");
 
   const now = new Date().toISOString();
   // Tạm thời vẫn dùng toolCall mẫu để luồng Chat → Dashboard chạy được; T016 thay bằng detection thật.
