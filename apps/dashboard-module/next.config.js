@@ -18,6 +18,20 @@ const nextConfig = {
     // luôn cài `eslint` (devDependency ở root, không thuộc closure install của app này).
     ignoreDuringBuilds: true,
   },
+  async headers() {
+    // remoteEntry.js không có content hash nhưng Next mặc định gắn `immutable` cho /_next/static →
+    // trình duyệt giữ bản cũ (trỏ tới chunk đã bị xoá sau deploy). Buộc revalidate mỗi lần: 304
+    // rẻ hơn nhiều so với tải lại ~400 KB, các chunk có hash vẫn cache immutable.
+    return [
+      {
+        source: "/_next/static/chunks/remoteEntry.js",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+          { key: "Access-Control-Allow-Origin", value: "*" },
+        ],
+      },
+    ];
+  },
   webpack(config, options) {
     // Chỉ federation ở client: component được expose là client component, Shell nạp với ssr: false.
     if (options.isServer) return config;
