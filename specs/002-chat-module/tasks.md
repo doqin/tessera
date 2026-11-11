@@ -63,5 +63,7 @@ Nguồn: `plan.md`. `[x]` = đã thực hiện (phiên "D2 Foundation Setup" và
       Groq lần 2 để sinh câu trả lời cuối từ kết quả tool — spec loại trừ orchestration; nếu model chỉ
       gọi tool, khung chat hiện một dòng xác nhận. Đã kiểm với Groq thật + trình duyệt: prompt thời
       tiết ghi `lastToolCall` vào store; chưa chạy lại luồng 3 server Shell/Chat/Dashboard.)_
-- [ ] **T017** Coverage ≥70% cho toàn bộ `hooks/`+`services/` sau khi có logic thật (không chỉ
-      mock).
+- [x] **T017** Coverage ≥70% cho toàn bộ `hooks/`+`services/` sau khi có logic thật (không chỉ
+      mock). _(Đo 2026-11-11 bằng `npx jest --coverage` sau T012–T016: `hooks/` 97.4% statements /
+      90.9% branches, `services/` 99.3% / 91.3% (gồm `groqProxy`, `demoTools`, `chatService` với
+      timeout, ngắt giữa chừng, tool call); `components/` 96.3%; toàn repo 96.7%.)_
