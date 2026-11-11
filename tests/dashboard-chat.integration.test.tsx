@@ -14,13 +14,22 @@ import ChatModule from "../apps/chat-module/components/ChatModule";
 import DashboardModule from "../apps/dashboard-module/components/DashboardModule";
 
 // jsdom không có TextDecoder/fetch streaming: giả lập đúng ranh giới mạng (route /api/chat của
-// chat-module, trả SSE kiểu Groq) — phần còn lại của luồng Chat → store → Dashboard chạy thật.
+// chat-module, trả SSE kiểu Groq kèm sự kiện tool call do route chèn) — phần còn lại của luồng Chat → store → Dashboard chạy thật.
 function mockChatApi() {
   Object.assign(global, { TextDecoder });
-  const encoded = new TextEncoder().encode(
-    `data: ${JSON.stringify({ choices: [{ delta: { content: "phản hồi" } }] })}\n\ndata: [DONE]\n\n`,
-  );
-  global.fetch = jest.fn(async () => {
+  global.fetch = jest.fn(async (_url: unknown, init?: RequestInit) => {
+    const { prompt } = JSON.parse(String(init?.body)) as { prompt: string };
+    const toolCall = {
+      id: `call-${prompt}`,
+      name: "search_docs",
+      params: { query: prompt },
+      result: { hits: 0 },
+      calledAt: new Date().toISOString(),
+    };
+    const encoded = new TextEncoder().encode(
+      `data: ${JSON.stringify({ choices: [{ delta: { content: "phản hồi" } }] })}\n\n` +
+        `data: ${JSON.stringify({ tessera_tool_call: toolCall })}\n\ndata: [DONE]\n\n`,
+    );
     let sent = false;
     return {
       ok: true,
@@ -66,11 +75,11 @@ describe("Chat ⇄ Dashboard integration", () => {
     await user.click(screen.getByRole("button", { name: "Gửi" }));
 
     await waitFor(() => {
-      expect(within(dashboard).getByText("mock_search")).toBeInTheDocument();
+      expect(within(dashboard).getByText("search_docs")).toBeInTheDocument();
     });
     expect(within(dashboard).getByText("query")).toBeInTheDocument();
     expect(within(dashboard).getByText("tìm tài liệu")).toBeInTheDocument();
-    expect(useIntegrationStore.getState().lastToolCall?.name).toBe("mock_search");
+    expect(useIntegrationStore.getState().lastToolCall?.name).toBe("search_docs");
   });
 
   it("re-renders Dashboard with the latest tool call after a second prompt", async () => {

@@ -55,7 +55,13 @@ Nguồn: `plan.md`. `[x]` = đã thực hiện (phiên "D2 Foundation Setup" và
       `interrupted` ("Phản hồi bị ngắt giữa chừng." ở `MessageBubble`). _(Kiểm bằng unit test + trình
       duyệt thật (dev server, Groq thật cho luồng thành công; ngắt/treo giả lập bằng cách ghi đè
       `fetch` trong trang). Chưa thử ngắt mạng thật giữa chừng.)_
-- [ ] **T016** Tool-call detection thật từ response Groq (không còn mock `toolCall` cố định) →
-      `integrationStore.setLastToolCall`.
+- [x] **T016** Tool-call detection thật từ response Groq: route `/api/chat` gửi 2 tool mẫu
+      (`get_weather`, `search_docs` — `services/demoTools.ts`, kết quả cố định, dữ liệu mock), gom
+      `delta.tool_calls` trong stream, chạy tool và chèn sự kiện `tessera_tool_call` trước `[DONE]`
+      (`withToolExecution` ở `services/groqProxy.ts`). `chatService` trả `toolCall` thật →
+      `integrationStore.setLastToolCall`; không còn `toolCall` mock cố định. _(Phạm vi: không gọi
+      Groq lần 2 để sinh câu trả lời cuối từ kết quả tool — spec loại trừ orchestration; nếu model chỉ
+      gọi tool, khung chat hiện một dòng xác nhận. Đã kiểm với Groq thật + trình duyệt: prompt thời
+      tiết ghi `lastToolCall` vào store; chưa chạy lại luồng 3 server Shell/Chat/Dashboard.)_
 - [ ] **T017** Coverage ≥70% cho toàn bộ `hooks/`+`services/` sau khi có logic thật (không chỉ
       mock).

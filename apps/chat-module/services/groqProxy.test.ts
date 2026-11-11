@@ -1,5 +1,11 @@
 /** @jest-environment node */
-import { MAX_PROMPT_LENGTH, handleChatRequest, handleOptions } from "./groqProxy";
+import {
+  MAX_PROMPT_LENGTH,
+  TOOL_EVENT_KEY,
+  handleChatRequest,
+  handleOptions,
+  withToolExecution,
+} from "./groqProxy";
 
 const post = (body: unknown) =>
   new Request("http://localhost/api/chat", {
@@ -69,6 +75,8 @@ describe("groqProxy", () => {
     expect(JSON.parse(init.body)).toMatchObject({
       stream: true,
       messages: [{ role: "user", content: "hello" }],
+      tool_choice: "auto",
+      tools: [{ function: { name: "get_weather" } }, { function: { name: "search_docs" } }],
     });
   });
 
@@ -90,5 +98,104 @@ describe("groqProxy", () => {
     fetchMock.mockRejectedValue(new Error("network"));
     const res = await handleChatRequest(post({ prompt: "x" }));
     expect(res.status).toBe(502);
+  });
+});
+
+const sse = (obj: unknown) => `data: ${JSON.stringify(obj)}\n\n`;
+const toolDelta = (call: object) => sse({ choices: [{ delta: { tool_calls: [call] } }] });
+
+async function run(chunks: string[]): Promise<string> {
+  const encoder = new TextEncoder();
+  const source = new ReadableStream<Uint8Array>({
+    start(controller) {
+      chunks.forEach((chunk) => controller.enqueue(encoder.encode(chunk)));
+      controller.close();
+    },
+  });
+  return new Response(withToolExecution(source)).text();
+}
+
+function toolEvents(output: string) {
+  return output
+    .split("\n")
+    .filter((line) => line.startsWith("data:") && line.includes(TOOL_EVENT_KEY))
+    .map((line) => JSON.parse(line.slice(5))[TOOL_EVENT_KEY]);
+}
+
+describe("withToolExecution", () => {
+  it("passes plain text streams through and still ends with [DONE]", async () => {
+    const out = await run([sse({ choices: [{ delta: { content: "hi" } }] }), "data: [DONE]\n\n"]);
+    expect(out).toContain('"content":"hi"');
+    expect(out.trimEnd().endsWith("data: [DONE]")).toBe(true);
+    expect(toolEvents(out)).toHaveLength(0);
+  });
+
+  it("assembles a tool call split across deltas, runs it and emits the event before [DONE]", async () => {
+    const out = await run([
+      toolDelta({ index: 0, id: "call_1", function: { name: "get_weather", arguments: '{"ci' } }),
+      toolDelta({ index: 0, function: { arguments: 'ty":"Huế"}' } }),
+      "data: [DONE]\n\n",
+    ]);
+    const [event] = toolEvents(out);
+    expect(event).toMatchObject({
+      id: "call_1",
+      name: "get_weather",
+      params: { city: "Huế" },
+      result: { city: "Huế", temperature_c: 28 },
+    });
+    expect(out.indexOf(TOOL_EVENT_KEY)).toBeLessThan(out.indexOf("[DONE]"));
+    expect(out.match(/\[DONE\]/g)).toHaveLength(1);
+  });
+
+  it("runs several tool calls in order", async () => {
+    const out = await run([
+      toolDelta({ index: 0, id: "a", function: { name: "get_weather", arguments: "{}" } }),
+      toolDelta({ index: 1, id: "b", function: { name: "search_docs", arguments: "{}" } }),
+      "data: [DONE]\n\n",
+    ]);
+    expect(toolEvents(out).map((e) => e.name)).toEqual(["get_weather", "search_docs"]);
+  });
+
+  it("survives invalid arguments and unknown tools without throwing", async () => {
+    const out = await run([
+      toolDelta({ index: 0, function: { name: "nope", arguments: "{broken" } }),
+      "data: [DONE]\n\n",
+    ]);
+    const [event] = toolEvents(out);
+    expect(event.params).toEqual({});
+    expect(event.result).toEqual({ error: expect.stringContaining("nope") });
+    expect(event.id).toMatch(/^call-/);
+  });
+
+  it("treats non-object arguments as empty params", async () => {
+    const out = await run([
+      toolDelta({ index: 0, id: "x", function: { name: "search_docs", arguments: "[1]" } }),
+      "data: [DONE]\n\n",
+    ]);
+    expect(toolEvents(out)[0].params).toEqual({});
+  });
+
+  it("emits nothing extra when the upstream stream is cut without [DONE]", async () => {
+    const out = await run([
+      toolDelta({ index: 0, id: "a", function: { name: "get_weather", arguments: "{}" } }),
+    ]);
+    expect(toolEvents(out)).toHaveLength(0);
+    expect(out).not.toContain("[DONE]");
+  });
+
+  it("handles lines split across chunks and a final line without newline", async () => {
+    const line = toolDelta({
+      index: 0,
+      id: "a",
+      function: { name: "search_docs", arguments: "{}" },
+    });
+    const out = await run([line.slice(0, 20), line.slice(20), "data: [DONE]"]);
+    expect(toolEvents(out)).toHaveLength(1);
+    expect(out.trimEnd().endsWith("data: [DONE]")).toBe(true);
+  });
+
+  it("forwards non-JSON data lines untouched", async () => {
+    const out = await run([": comment\n", "data: {oops\n\n", "data: [DONE]\n\n"]);
+    expect(out).toContain("data: {oops");
   });
 });
