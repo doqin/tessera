@@ -9,6 +9,6 @@ npm run build -w chat-module # sinh .next/static/chunks/remoteEntry.js
 ```
 
 - Cấu hình Module Federation + workaround: `next.config.js`.
-- Tổ chức MVVM: `components/` (View), `hooks/` (ViewModel), `services/` (Model — hiện là mock).
+- Tổ chức MVVM: `components/` (View), `hooks/` (ViewModel), `services/` (Model — gọi `/api/chat`, route handler proxy Groq giữ `GROQ_API_KEY` phía server; xem `.env.local.example`).
 - Xem `apps/README.md`, `specs/002-chat-module/plan.md` và
   `docs/findings/R2-module-federation-nextjs-approuter.md` §13.

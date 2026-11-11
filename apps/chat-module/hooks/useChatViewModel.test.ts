@@ -89,4 +89,35 @@ describe("useChatViewModel", () => {
     expect(result.current.messages).toHaveLength(0);
     expect(sendPromptMock).not.toHaveBeenCalled();
   });
+
+  it("updates one agent message in place as deltas stream in", async () => {
+    let finish: (value: Awaited<ReturnType<typeof sendPrompt>>) => void = () => undefined;
+    sendPromptMock.mockImplementation((_prompt, options) => {
+      options?.onDelta?.("Xin ");
+      options?.onDelta?.("chào");
+      return new Promise((resolve) => {
+        finish = resolve;
+      });
+    });
+    const { result } = renderHook(() => useChatViewModel());
+
+    let pending: Promise<void> = Promise.resolve();
+    await act(async () => {
+      pending = result.current.submitPrompt("hi");
+    });
+
+    expect(result.current.messages).toHaveLength(2);
+    expect(result.current.messages[1]).toMatchObject({ role: "agent", content: "Xin chào" });
+    const streamingId = result.current.messages[1].id;
+
+    await act(async () => {
+      finish({
+        message: { id: "x", role: "agent", content: "Xin chào", status: "sent", createdAt: "now" },
+      });
+      await pending;
+    });
+
+    expect(result.current.messages).toHaveLength(2);
+    expect(result.current.messages[1].id).toBe(streamingId);
+  });
 });

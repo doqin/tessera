@@ -6,11 +6,36 @@
  * Chưa bao gồm: nạp remote qua Module Federation và fallback khi remote down (cần trình duyệt
  * thật — xem specs/001-shell-app/tasks.md T016).
  */
+import { TextDecoder, TextEncoder } from "node:util";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useIntegrationStore } from "@tessera/integration-store";
 import ChatModule from "../apps/chat-module/components/ChatModule";
 import DashboardModule from "../apps/dashboard-module/components/DashboardModule";
+
+// jsdom không có TextDecoder/fetch streaming: giả lập đúng ranh giới mạng (route /api/chat của
+// chat-module, trả SSE kiểu Groq) — phần còn lại của luồng Chat → store → Dashboard chạy thật.
+function mockChatApi() {
+  Object.assign(global, { TextDecoder });
+  const encoded = new TextEncoder().encode(
+    `data: ${JSON.stringify({ choices: [{ delta: { content: "phản hồi" } }] })}\n\ndata: [DONE]\n\n`,
+  );
+  global.fetch = jest.fn(async () => {
+    let sent = false;
+    return {
+      ok: true,
+      status: 200,
+      body: {
+        getReader: () => ({
+          read: async () =>
+            sent
+              ? { done: true, value: undefined }
+              : ((sent = true), { done: false, value: encoded }),
+        }),
+      },
+    } as unknown as Response;
+  }) as unknown as typeof fetch;
+}
 
 function renderShellLikeLayout() {
   return render(
@@ -28,6 +53,7 @@ function renderShellLikeLayout() {
 describe("Chat ⇄ Dashboard integration", () => {
   beforeEach(() => {
     useIntegrationStore.setState({ lastToolCall: null });
+    mockChatApi();
   });
 
   it("shows the tool call from a prompt sent in Chat without remounting Dashboard", async () => {

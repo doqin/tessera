@@ -12,6 +12,13 @@ function createId(): string {
   return `id-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+/** Thêm message mới hoặc ghi đè message cùng id (message agent được cập nhật dần khi streaming). */
+function upsertMessage(messages: Message[], next: Message): Message[] {
+  return messages.some((m) => m.id === next.id)
+    ? messages.map((m) => (m.id === next.id ? next : m))
+    : [...messages, next];
+}
+
 export interface ChatViewModel {
   messages: Message[];
   isSending: boolean;
@@ -38,9 +45,24 @@ export function useChatViewModel(): ChatViewModel {
       setMessages((prev) => [...prev, userMessage]);
       setIsSending(true);
 
+      const agentId = createId();
+      let streamed = "";
+
       try {
-        const { message, toolCall } = await sendPrompt(trimmed);
-        setMessages((prev) => [...prev, message]);
+        const { message, toolCall } = await sendPrompt(trimmed, {
+          onDelta: (delta) => {
+            streamed += delta;
+            const partial: Message = {
+              id: agentId,
+              role: "agent",
+              content: streamed,
+              status: "sent",
+              createdAt: new Date().toISOString(),
+            };
+            setMessages((prev) => upsertMessage(prev, partial));
+          },
+        });
+        setMessages((prev) => upsertMessage(prev, { ...message, id: agentId }));
         if (toolCall) {
           setLastToolCall(toolCall);
         }
