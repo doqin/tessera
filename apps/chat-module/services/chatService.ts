@@ -26,6 +26,17 @@ function createId(): string {
   return `id-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+/** Tool call đã thực thi do route `/api/chat` chèn vào stream (`TOOL_EVENT_KEY` ở groqProxy). */
+function parseToolEvent(line: string): ToolCall | null {
+  if (!line.startsWith("data:")) return null;
+  try {
+    const json = JSON.parse(line.slice(5).trim()) as { tessera_tool_call?: ToolCall };
+    return json.tessera_tool_call ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** Phân tích 1 dòng SSE: `[DONE]` là tín hiệu kết thúc hợp lệ của stream. */
 function isDoneLine(line: string): boolean {
   return line.startsWith("data:") && line.slice(5).trim() === "[DONE]";
@@ -72,9 +83,11 @@ export async function sendPrompt(
 
   let content = "";
   let finished = false;
+  let toolCall: ToolCall | undefined;
   const consume = (rawLine: string) => {
     const line = rawLine.trim();
     if (isDoneLine(line)) finished = true;
+    toolCall = parseToolEvent(line) ?? toolCall;
     const delta = parseSseLine(line);
     if (!delta) return;
     content += delta;
@@ -117,17 +130,12 @@ export async function sendPrompt(
   if (!finished) throw new Error("Phản hồi bị ngắt giữa chừng.");
 
   const now = new Date().toISOString();
-  // Tạm thời vẫn dùng toolCall mẫu để luồng Chat → Dashboard chạy được; T016 thay bằng detection thật.
-  const toolCall: ToolCall = {
-    id: createId(),
-    name: "mock_search",
-    params: { query: promptText },
-    result: { hits: 0 },
-    calledAt: now,
-  };
+  // Model chỉ gọi tool, không có văn bản: vẫn hiển thị một dòng xác nhận trong khung chat.
+  const text =
+    content || (toolCall ? `Đã gọi tool "${toolCall.name}" — xem kết quả ở Dashboard.` : content);
 
   return {
-    message: { id: createId(), role: "agent", content, status: "sent", createdAt: now },
+    message: { id: createId(), role: "agent", content: text, status: "sent", createdAt: now },
     toolCall,
   };
 }

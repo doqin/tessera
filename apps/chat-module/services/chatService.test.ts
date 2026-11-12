@@ -90,12 +90,44 @@ describe("chatService.sendPrompt", () => {
     await expect(sendPrompt("hi")).rejects.toThrow("502");
   });
 
-  it("still attaches the temporary mock toolCall (until T016) and fresh ids", async () => {
-    fetchMock.mockImplementation(async () => sseResponse([delta("x"), DONE]));
+  it("returns no toolCall when the stream carries no tool event", async () => {
+    fetchMock.mockResolvedValue(sseResponse([delta("x"), DONE]));
+    const { toolCall, message } = await sendPrompt("a");
+    expect(toolCall).toBeUndefined();
+    expect(message.content).toBe("x");
+  });
+
+  it("returns the tool call emitted by the route and a fresh message id each call", async () => {
+    const call = {
+      id: "c1",
+      name: "get_weather",
+      params: { city: "Huế" },
+      result: { temperature_c: 28 },
+      calledAt: "2026-11-11T00:00:00.000Z",
+    };
+    fetchMock.mockImplementation(async () =>
+      sseResponse([
+        delta("Để mình xem. "),
+        `data: ${JSON.stringify({ tessera_tool_call: call })}\n\n`,
+        DONE,
+      ]),
+    );
     const first = await sendPrompt("a");
     const second = await sendPrompt("b");
-    expect(first.toolCall?.params).toEqual({ query: "a" });
+    expect(first.toolCall).toEqual(call);
+    expect(first.message.content).toBe("Để mình xem. ");
     expect(first.message.id).not.toBe(second.message.id);
+  });
+
+  it("adds a confirmation line when the model only calls a tool and says nothing", async () => {
+    const call = { id: "c1", name: "search_docs", params: {}, calledAt: "now" };
+    fetchMock.mockResolvedValue(
+      sseResponse([`data: ${JSON.stringify({ tessera_tool_call: call })}\n\n`, DONE]),
+    );
+    const { message, toolCall } = await sendPrompt("a");
+    expect(toolCall?.name).toBe("search_docs");
+    expect(message.content).toContain("search_docs");
+    expect(message.content).toContain("Dashboard");
   });
 
   describe("timeout and interruption", () => {

@@ -4,6 +4,11 @@
  * trong trình duyệt của Shell nên không được chứa key). Tách khỏi `route.ts` để unit test được.
  */
 
+import { DEMO_TOOLS, runDemoTool } from "./demoTools";
+
+/** Dòng SSE tuỳ biến do route chèn thêm: tool call đã thực thi (kèm kết quả mẫu). */
+export const TOOL_EVENT_KEY = "tessera_tool_call";
+
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 // Cùng model với tools/llm-trial/test-llm-connection.mjs; đổi bằng GROQ_MODEL.
 const DEFAULT_MODEL = "qwen/qwen3.8-27b";
@@ -23,6 +28,100 @@ function jsonError(status: number, error: string): Response {
     status,
     headers: { ...corsHeaders(), "content-type": "application/json" },
   });
+}
+
+interface PendingToolCall {
+  id: string;
+  name: string;
+  args: string;
+}
+
+function parseArgs(raw: string): Record<string, unknown> {
+  try {
+    const value: unknown = JSON.parse(raw || "{}");
+    return value && typeof value === "object" && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Chuyển tiếp nguyên SSE của Groq, đồng thời gom các `delta.tool_calls`. Khi upstream kết thúc
+ * bằng `[DONE]`, chạy tool mẫu và chèn sự kiện `tessera_tool_call` TRƯỚC `[DONE]` (dòng `[DONE]`
+ * bị giữ lại đến lúc đó). Stream bị cắt (không có `[DONE]`) thì không chèn gì — client coi là ngắt.
+ */
+export function withToolExecution(source: ReadableStream<Uint8Array>): ReadableStream<Uint8Array> {
+  const decoder = new TextDecoder();
+  const encoder = new TextEncoder();
+  const pending = new Map<number, PendingToolCall>();
+  let buffer = "";
+  let sawDone = false;
+
+  const handleLine = (line: string, controller: TransformStreamDefaultController<Uint8Array>) => {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("data:")) {
+      const data = trimmed.slice(5).trim();
+      if (data === "[DONE]") {
+        sawDone = true;
+        return;
+      }
+      try {
+        const json = JSON.parse(data) as {
+          choices?: {
+            delta?: {
+              tool_calls?: {
+                index?: number;
+                id?: string;
+                function?: { name?: string; arguments?: string };
+              }[];
+            };
+          }[];
+        };
+        for (const call of json.choices?.[0]?.delta?.tool_calls ?? []) {
+          const entry = pending.get(call.index ?? 0) ?? { id: "", name: "", args: "" };
+          if (call.id) entry.id = call.id;
+          if (call.function?.name) entry.name = call.function.name;
+          entry.args += call.function?.arguments ?? "";
+          pending.set(call.index ?? 0, entry);
+        }
+      } catch {
+        // dòng không phải JSON hợp lệ: vẫn chuyển tiếp nguyên trạng.
+      }
+    }
+    controller.enqueue(encoder.encode(`${line}\n`));
+  };
+
+  return source.pipeThrough(
+    new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        buffer += decoder.decode(chunk, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        lines.forEach((line) => handleLine(line, controller));
+      },
+      flush(controller) {
+        if (buffer + decoder.decode()) handleLine(buffer, controller);
+        if (!sawDone) return;
+        for (const call of pending.values()) {
+          if (!call.name) continue;
+          const params = parseArgs(call.args);
+          const payload = {
+            id: call.id || `call-${Date.now()}`,
+            name: call.name,
+            params,
+            result: runDemoTool(call.name, params),
+            calledAt: new Date().toISOString(),
+          };
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ [TOOL_EVENT_KEY]: payload })}\n\n`),
+          );
+        }
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      },
+    }),
+  );
 }
 
 export function handleOptions(): Response {
@@ -55,6 +154,8 @@ export async function handleChatRequest(request: Request): Promise<Response> {
         model: process.env.GROQ_MODEL ?? DEFAULT_MODEL,
         messages: [{ role: "user", content: prompt }],
         stream: true,
+        tools: DEMO_TOOLS,
+        tool_choice: "auto",
       }),
       signal: request.signal,
     });
@@ -67,7 +168,7 @@ export async function handleChatRequest(request: Request): Promise<Response> {
     return jsonError(502, `Groq API lỗi (${upstream.status}).`);
   }
 
-  return new Response(upstream.body, {
+  return new Response(withToolExecution(upstream.body), {
     status: 200,
     headers: {
       ...corsHeaders(),
