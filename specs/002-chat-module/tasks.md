@@ -46,8 +46,15 @@ Nguồn: `plan.md`. `[x]` = đã thực hiện (phiên "D2 Foundation Setup" và
 - [x] **T013** Streaming thật: route proxy SSE của Groq (`stream: true`), `chatService` đọc từng
       chunk và gọi `onDelta`; `useChatViewModel` cập nhật một message agent tại chỗ nên
       `MessageBubble` tăng dần theo chunk (FR3, AC2). _(`toolCall` vẫn là mẫu cố định đến T016.)_
-- [ ] **T014** Xử lý lỗi/timeout thật (15s, Clarify §9) — hiển thị message lỗi trong danh sách.
-- [ ] **T015** Xử lý streaming bị ngắt giữa chừng (Clarify §9) — giữ partial content + chỉ báo.
+- [x] **T014** Lỗi/timeout thật (15s, Clarify §9): `chatService.sendPrompt` đặt timeout 15s cho phản
+      hồi đầu tiên và cho mỗi khoảng lặng giữa 2 chunk (`STREAM_TIMEOUT_MS`), huỷ request khi hết
+      hạn; lỗi HTTP/timeout khi chưa nhận gì → `useChatViewModel` thêm message `error` trong danh sách,
+      UI không treo, vẫn gửi được prompt tiếp.
+- [x] **T015** Stream bị ngắt giữa chừng (Clarify §9): mất kết nối, im lặng quá 15s sau khi đã có nội
+      dung, hoặc stream đóng mà không có `[DONE]` → giữ partial content, đổi `status` thành
+      `interrupted` ("Phản hồi bị ngắt giữa chừng." ở `MessageBubble`). _(Kiểm bằng unit test + trình
+      duyệt thật (dev server, Groq thật cho luồng thành công; ngắt/treo giả lập bằng cách ghi đè
+      `fetch` trong trang). Chưa thử ngắt mạng thật giữa chừng.)_
 - [ ] **T016** Tool-call detection thật từ response Groq (không còn mock `toolCall` cố định) →
       `integrationStore.setLastToolCall`.
 - [ ] **T017** Coverage ≥70% cho toàn bộ `hooks/`+`services/` sau khi có logic thật (không chỉ

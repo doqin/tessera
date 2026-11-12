@@ -120,4 +120,37 @@ describe("useChatViewModel", () => {
     expect(result.current.messages).toHaveLength(2);
     expect(result.current.messages[1].id).toBe(streamingId);
   });
+
+  it("keeps the partial content and marks it interrupted when the stream fails mid-way", async () => {
+    sendPromptMock.mockImplementation(async (_prompt, options) => {
+      options?.onDelta?.("Xin ");
+      options?.onDelta?.("chà");
+      throw new Error("network drop");
+    });
+    const { result } = renderHook(() => useChatViewModel());
+
+    await act(async () => {
+      await result.current.submitPrompt("hi");
+    });
+
+    expect(result.current.messages).toHaveLength(2);
+    expect(result.current.messages[1]).toMatchObject({
+      role: "agent",
+      content: "Xin chà",
+      status: "interrupted",
+    });
+    expect(result.current.isSending).toBe(false);
+  });
+
+  it("shows a single error message when nothing was received before the failure", async () => {
+    sendPromptMock.mockRejectedValue(new Error("Chat API không phản hồi sau 15s."));
+    const { result } = renderHook(() => useChatViewModel());
+
+    await act(async () => {
+      await result.current.submitPrompt("hi");
+    });
+
+    expect(result.current.messages).toHaveLength(2);
+    expect(result.current.messages[1]).toMatchObject({ status: "error" });
+  });
 });

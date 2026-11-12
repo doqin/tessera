@@ -67,16 +67,24 @@ export function useChatViewModel(): ChatViewModel {
           setLastToolCall(toolCall);
         }
       } catch {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: createId(),
-            role: "agent",
-            content: "Không nhận được phản hồi, thử lại.",
-            status: "error",
-            createdAt: new Date().toISOString(),
-          },
-        ]);
+        // Đã nhận được một phần nội dung → giữ lại kèm chỉ báo "bị ngắt" (Clarify §9, T015);
+        // chưa nhận gì (lỗi/timeout) → message lỗi (T014).
+        const failed: Message = streamed
+          ? {
+              id: agentId,
+              role: "agent",
+              content: streamed,
+              status: "interrupted",
+              createdAt: new Date().toISOString(),
+            }
+          : {
+              id: agentId,
+              role: "agent",
+              content: "Không nhận được phản hồi, thử lại.",
+              status: "error",
+              createdAt: new Date().toISOString(),
+            };
+        setMessages((prev) => upsertMessage(prev, failed));
       } finally {
         setIsSending(false);
       }
