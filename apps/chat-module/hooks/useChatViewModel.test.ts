@@ -141,7 +141,10 @@ describe("useChatViewModel", () => {
     });
 
     expect(result.current.messages).toHaveLength(2);
-    expect(result.current.messages[1]).toMatchObject({ content: "một phần", status: "interrupted" });
+    expect(result.current.messages[1]).toMatchObject({
+      content: "một phần",
+      status: "interrupted",
+    });
     expect(useIntegrationStore.getState().lastToolCall).toBeNull();
   });
 
