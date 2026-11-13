@@ -41,7 +41,7 @@ Next.js **13.5.11** (App Router) + TypeScript · **Module Federation**
 (`@module-federation/nextjs-mf`; Next.js Multi-Zones là phương án dự phòng) — hạ từ Next.js 15 vì
 Module Federation chưa chạy được ở bản mới hơn, xem
 `docs/findings/R2-module-federation-nextjs-approuter.md` · dqcss (`@doqin/dqcss`) · Zustand ·
-Axios · ESLint + Prettier · Jest + React Testing Library · GitHub Actions · Vercel. Chi tiết:
+Axios · ESLint + Prettier · Jest + React Testing Library · Playwright (E2E) · GitHub Actions · Vercel. Chi tiết:
 `docs/reference/UIT.SE.66 - Tech Stack.xlsx`.
 
 ## Bắt đầu

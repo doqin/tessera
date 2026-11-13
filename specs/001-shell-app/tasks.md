@@ -64,10 +64,17 @@ Next.js 13.5.11 + Module Federation — xem `docs/findings/R2-module-federation-
       3 app → hết 3 cảnh báo "No version specified" khi build. (3) SSR cho remote: **quyết định không
       làm** — Chat/Dashboard là widget tương tác phía client, nạp `ssr: false` đã đủ; ghi nhận là hạn
       chế có chủ đích (plan §7). Chưa đo lại trên Vercel.)_
-- [ ] **T016** Integration test tự động Shell ⇄ remote (nạp remote, điều hướng không reload,
+- [x] **T016** Integration test tự động Shell ⇄ remote (nạp remote, điều hướng không reload,
       `lastToolCall` ghi bởi remote **được Shell/Dashboard đọc live** — kiểm chứng store singleton
       thực sự chung 1 instance, fallback khi remote down) — cần Chat module có nội dung thật.
-      _(Store singleton đã kiểm chứng thủ công trong browser 2026-11-03; phần integration test tự
-      động và live read vẫn còn.)_
+      _(Playwright (đã thêm vào Tech Stack — constitution §4) trong `e2e/shell.spec.ts`, chạy trên
+      production build của 3 app (`npm run test:e2e`, bước mới trong CI): (1) `/chat` nạp
+      `remoteEntry.js` từ :3001 và không có request `autostatic`; (2) `/chat` ⇄ `/dashboard` là
+      điều hướng mềm (marker `window` còn nguyên); (3) prompt ở Chat remote → `lastToolCall` hiện ở
+      Dashboard remote, prompt thứ hai thay thế giá trị cũ, còn sau reload — chứng minh store chung
+      1 instance qua localStorage + Zustand; (4) chặn :3002 → Shell hiện fallback, header/sidebar và
+      điều hướng sang `/chat` vẫn chạy. `/api/chat` được mock ở mức trình duyệt (SSE kiểu Groq có
+      tool-call) — không gọi Groq thật. Chạy lặp 24/24 pass trên máy phát triển; chưa có kết quả CI
+      (job bị khoá do billing).)_
 - [ ] **T017** Kiểm thử NFR thực đo (First Load <3s, điều hướng <300ms, Lighthouse ≥80) — cần môi
       trường deploy thật (sau T013).

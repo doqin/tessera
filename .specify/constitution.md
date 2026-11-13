@@ -23,6 +23,9 @@
 
 - Mỗi module MFE có Unit Test (Jest + React Testing Library), coverage tối thiểu **70%**.
 - Integration Test cho luồng ghép nối Shell ⇄ module (load module, truyền state, điều hướng).
+- Kiểm thử E2E trên trình duyệt thật bằng **Playwright** (`@playwright/test`, thư mục `e2e/`, tách
+  khỏi Jest) cho những gì Jest/jsdom không chứng minh được: nạp remote qua Module Federation, điều
+  hướng mềm không reload, store singleton chung, fallback khi remote down.
 
 ## 4. Dependency Rules
 
@@ -33,7 +36,7 @@
   React 18.2 + TypeScript, Module Federation (`@module-federation/nextjs-mf` 8.8.76, dự phòng:
   Next.js Multi-Zones), dqcss (`@doqin/dqcss`, BIOS-screen look; thay TailwindCSS + shadcn-ui),
   Zustand, Axios, Groq API (mặc định, free tier) / OpenAI API / Claude API (production-target),
-  ESLint + Prettier, Jest + RTL, GitHub Actions, Vercel.
+  ESLint + Prettier, Jest + RTL, Playwright (E2E), GitHub Actions, Vercel.
 
 ## 5. API Conventions
 

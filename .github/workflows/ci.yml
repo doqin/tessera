@@ -19,3 +19,5 @@ jobs:
       - run: npm run typecheck
       - run: npm run build --workspaces --if-present
       - run: npm test -- --coverage
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
