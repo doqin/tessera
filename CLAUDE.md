@@ -30,7 +30,9 @@ Next.js/React/webpack hoặc sửa `next.config.js`.
   nhận chi phí (production-target, constitution §5). Mọi lệnh gọi LLM API trong code/test chỉ
   dùng dữ liệu mẫu (mock/dummy) — không đưa dữ liệu thật vào prompt (NDA).
 - TypeScript strict mode; ESLint + Prettier phải pass trước khi coi task là hoàn thành.
-- Unit test (Jest + RTL) cho code mới, hướng tới coverage ≥70%/module.
+- Unit test (Jest + RTL) cho code mới, hướng tới coverage ≥70%/module. E2E trên trình duyệt thật
+  dùng Playwright (`e2e/`, chạy `npm run test:e2e` sau khi build 3 app) — không đặt spec Playwright
+  trong `tests/` (Jest quét thư mục đó).
 - Một module không import trực tiếp internal của module khác — giao tiếp qua Integration Layer
   (Zustand store dùng chung hoặc custom event).
 
@@ -46,7 +48,8 @@ apps/                       # Next.js apps độc lập (shell, chat-module, das
 packages/shared-ui/         # Design system dùng chung (dqcss — `@doqin/dqcss`)
 tools/llm-trial/            # Script thử kết nối LLM API bằng dữ liệu mẫu
 docs/                       # Tài liệu tham khảo (D1–D3, Tech Stack, Project Charter)
-tests/                      # Integration test giữa shell và module
+tests/                      # Integration test (Jest) giữa shell và module
+e2e/                        # E2E Playwright: Shell nạp remote thật, điều hướng, fallback
 ```
 
 ## Tài liệu tham khảo (đặt tại docs/reference/)

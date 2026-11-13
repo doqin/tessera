@@ -12,6 +12,7 @@
     "format": "prettier --check .",
     "format:write": "prettier --write .",
     "test": "jest",
+    "test:e2e": "playwright test",
     "typecheck": "tsc --build --pretty",
     "dev:all": "node scripts/dev-all.mjs"
   },
@@ -20,6 +21,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
+    "@playwright/test": "~1.55.0",
     "@swc/helpers": "0.5.2",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.3",

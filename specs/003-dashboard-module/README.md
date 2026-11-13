@@ -15,11 +15,11 @@ Thư mục SDD của Tool-Invocation/Dashboard module — remote Module Federati
 
 ## Tài liệu
 
-| File | Nội dung |
-| --- | --- |
-| [`spec.md`](./spec.md) | WHAT + WHY: user story, FR/NFR, acceptance criteria, edge case, Clarify |
-| [`plan.md`](./plan.md) | HOW: kiến trúc MVVM, cấu hình remote Module Federation |
-| [`tasks.md`](./tasks.md) | DO: task atomic có thứ tự và trạng thái |
+| File                     | Nội dung                                                                |
+| ------------------------ | ----------------------------------------------------------------------- |
+| [`spec.md`](./spec.md)   | WHAT + WHY: user story, FR/NFR, acceptance criteria, edge case, Clarify |
+| [`plan.md`](./plan.md)   | HOW: kiến trúc MVVM, cấu hình remote Module Federation                  |
+| [`tasks.md`](./tasks.md) | DO: task atomic có thứ tự và trạng thái                                 |
 
 Thứ tự bắt buộc theo SDD: `spec.md` → `plan.md` → `tasks.md` → code
 (`.specify/constitution.md` §8).

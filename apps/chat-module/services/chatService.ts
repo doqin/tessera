@@ -96,7 +96,10 @@ function accumulateToolCalls(pending: Map<number, PendingToolCall>, deltas: Tool
  * Chạy tool mẫu cho tool-call cuối hợp lệ (store chỉ lưu `lastToolCall`). Tool lạ hoặc
  * `arguments` không phải JSON object → bỏ qua (spec §9).
  */
-function resolveToolCall(pending: Map<number, PendingToolCall>, calledAt: string): ToolCall | undefined {
+function resolveToolCall(
+  pending: Map<number, PendingToolCall>,
+  calledAt: string,
+): ToolCall | undefined {
   const entries = [...pending.entries()].sort(([a], [b]) => b - a).map(([, entry]) => entry);
   for (const entry of entries) {
     let params: unknown;

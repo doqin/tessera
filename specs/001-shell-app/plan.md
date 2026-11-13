@@ -111,14 +111,14 @@ Model/service riêng. `Sidebar.tsx` là ViewModel-glue: đọc `usePathname()`, 
 
 ## 5. Tech stack cụ thể dùng cho module này
 
-| Nhóm        | Lựa chọn cụ thể                                                                                                                                                                         |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Next.js     | **13.5.11**, App Router; React 18.2; `next.config.js` (CJS)                                                                                                                             |
-| MFE         | Module Federation: `@module-federation/nextjs-mf` 8.8.76 + `webpack` 5.99.9; dự phòng Multi-Zones (xem §11 của spec)                                                                    |
-| Styling     | `@doqin/dqcss` (import toàn cục trong `globals.css`) + theme Groq trong `packages/shared-ui`; font `Inter`/`Roboto_Mono` (Geist không có ở 13.5)                                       |
-| State       | Zustand (+ `persist` middleware, localStorage)                                                                                                                                          |
-| Test        | Jest + React Testing Library, coverage ≥70% (Constitution §3)                                                                                                                           |
-| Lint/Format | ESLint config gốc (`eslint.config.mjs`) + Prettier — không tạo config riêng cho app                                                                                                     |
+| Nhóm        | Lựa chọn cụ thể                                                                                                                                  |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Next.js     | **13.5.11**, App Router; React 18.2; `next.config.js` (CJS)                                                                                      |
+| MFE         | Module Federation: `@module-federation/nextjs-mf` 8.8.76 + `webpack` 5.99.9; dự phòng Multi-Zones (xem §11 của spec)                             |
+| Styling     | `@doqin/dqcss` (import toàn cục trong `globals.css`) + theme Groq trong `packages/shared-ui`; font `Inter`/`Roboto_Mono` (Geist không có ở 13.5) |
+| State       | Zustand (+ `persist` middleware, localStorage)                                                                                                   |
+| Test        | Jest + React Testing Library, coverage ≥70% (Constitution §3)                                                                                    |
+| Lint/Format | ESLint config gốc (`eslint.config.mjs`) + Prettier — không tạo config riêng cho app                                                              |
 
 ## 6. Testing strategy
 

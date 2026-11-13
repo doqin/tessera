@@ -100,8 +100,16 @@ describe("chatService.sendPrompt", () => {
       fetchMock.mockResolvedValue(
         sseResponse([
           delta("Để mình tìm."),
-          toolDelta({ index: 0, id: "a", function: { name: "get_weather", arguments: '{"city":"X"}' } }),
-          toolDelta({ index: 1, id: "b", function: { name: "search_docs", arguments: '{"query":"mf"}' } }),
+          toolDelta({
+            index: 0,
+            id: "a",
+            function: { name: "get_weather", arguments: '{"city":"X"}' },
+          }),
+          toolDelta({
+            index: 1,
+            id: "b",
+            function: { name: "search_docs", arguments: '{"query":"mf"}' },
+          }),
           finish,
         ]),
       );
@@ -116,7 +124,9 @@ describe("chatService.sendPrompt", () => {
       ["invalid JSON arguments", { name: "get_weather", arguments: "{city" }],
       ["non-object arguments", { name: "get_weather", arguments: "[1]" }],
     ])("ignores a tool call with %s", async (_name, fn) => {
-      fetchMock.mockResolvedValue(sseResponse([delta("ok"), toolDelta({ index: 0, function: fn }), finish]));
+      fetchMock.mockResolvedValue(
+        sseResponse([delta("ok"), toolDelta({ index: 0, function: fn }), finish]),
+      );
       const { toolCall } = await sendPrompt("hi");
       expect(toolCall).toBeUndefined();
     });

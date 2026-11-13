@@ -41,32 +41,23 @@ Nguồn: `plan.md`. `[x]` = đã thực hiện; `[ ]` = giai đoạn Thực hi�
 - [x] **T014** Coverage module dashboard (`components/` 100%, `hooks/` 100% statements,
       `services/` ≥97%); toàn repo 94.6% statements khi chạy `npx jest --coverage`.
 - [x] **T015** Integration test Shell ⇄ Dashboard (nạp remote, điều hướng không reload, fallback khi
-      remote down, store singleton). Đã kiểm chứng:
-      - Jest: `tests/dashboard-chat.integration.test.tsx` — Chat ghi `lastToolCall`, Dashboard đọc live
-        qua store chung trong cùng cây React.
-      - Browser (2026-11-04, dev servers): `/chat` gửi prompt → `/dashboard` (điều hướng mềm, không
-        reload) hiện đúng tool call; hai lần gửi liên tiếp đều hiện giá trị mới nhất; tải lại trang
-        vẫn giữ `lastToolCall` (localStorage).
-      - Store singleton: `shell`, `chat_module`, `dashboard_module` cùng trỏ một `shareScopeMap.default`
-        và một entry `@tessera/integration-store@0.1.0` (`from: shell`, `loaded: true`).
-      - Fallback: dừng server `dashboard_module` (:3002) rồi tải `/dashboard` → Shell hiện thông báo
-        "Không tải được module dashboard_module" kèm nút tải lại; header/sidebar giữ nguyên và điều
-        hướng sang `/chat` vẫn hoạt động. Khởi động lại remote rồi tải lại → module hoạt động.
+      remote down, store singleton). Đã kiểm chứng: - Jest: `tests/dashboard-chat.integration.test.tsx` — Chat ghi `lastToolCall`, Dashboard đọc live
+      qua store chung trong cùng cây React. - Browser (2026-11-04, dev servers): `/chat` gửi prompt → `/dashboard` (điều hướng mềm, không
+      reload) hiện đúng tool call; hai lần gửi liên tiếp đều hiện giá trị mới nhất; tải lại trang
+      vẫn giữ `lastToolCall` (localStorage). - Store singleton: `shell`, `chat_module`, `dashboard_module` cùng trỏ một `shareScopeMap.default`
+      và một entry `@tessera/integration-store@0.1.0` (`from: shell`, `loaded: true`). - Fallback: dừng server `dashboard_module` (:3002) rồi tải `/dashboard` → Shell hiện thông báo
+      "Không tải được module dashboard_module" kèm nút tải lại; header/sidebar giữ nguyên và điều
+      hướng sang `/chat` vẫn hoạt động. Khởi động lại remote rồi tải lại → module hoạt động.
       _Chưa kiểm chứng: re-render live khi Dashboard đang mounted và store đổi (Shell không đặt Chat và
       Dashboard trên cùng một màn hình); phần này được bao phủ bởi test Jest ở trên._
-- [x] **T016** Kiểm thử NFR thực đo trên https://tessera-shell.vercel.app (2026-11-04, trình duyệt thật
-      + Lighthouse trên Edge headless):
-      - NFR1 First Load: `/chat` `loadEventEnd` ≈ 201 ms, remote Chat sẵn sàng ≈ 198 ms (cache trình duyệt
-        đã ấm). Lighthouse LCP: desktop 1.4 s; mobile **4.0 s** (không đạt <3 s khi mô phỏng mobile).
-      - NFR2 điều hướng mềm `/chat` → `/dashboard`: remote đã cache 5–9 ms (5 lần lặp, đạt <300 ms);
-        lần đầu khi remote chưa nạp **406–421 ms** (2 lần, vượt 300 ms). Phần lớn là tải
-        `remoteEntry.js` của `tessera-dashboard-module.vercel.app` (~330 ms).
-      - NFR3 Lighthouse Performance: `/chat` desktop 96, mobile 87; `/dashboard` desktop 100, mobile 99
-        (đạt ≥80).
-      - Shell trên Vercel nạp đúng remote deploy: `tessera-chat-module.vercel.app` và
-        `tessera-dashboard-module.vercel.app`; điều hướng mềm không reload.
+- [x] **T016** Kiểm thử NFR thực đo trên https://tessera-shell.vercel.app (2026-11-04, trình duyệt thật + Lighthouse trên Edge headless): - NFR1 First Load: `/chat` `loadEventEnd` ≈ 201 ms, remote Chat sẵn sàng ≈ 198 ms (cache trình duyệt
+      đã ấm). Lighthouse LCP: desktop 1.4 s; mobile **4.0 s** (không đạt <3 s khi mô phỏng mobile). - NFR2 điều hướng mềm `/chat` → `/dashboard`: remote đã cache 5–9 ms (5 lần lặp, đạt <300 ms);
+      lần đầu khi remote chưa nạp **406–421 ms** (2 lần, vượt 300 ms). Phần lớn là tải
+      `remoteEntry.js` của `tessera-dashboard-module.vercel.app` (~330 ms). - NFR3 Lighthouse Performance: `/chat` desktop 96, mobile 87; `/dashboard` desktop 100, mobile 99
+      (đạt ≥80). - Shell trên Vercel nạp đúng remote deploy: `tessera-chat-module.vercel.app` và
+      `tessera-dashboard-module.vercel.app`; điều hướng mềm không reload.
       _Đã xử lý NFR2 lần nạp đầu (2026-11-11): (1) `remoteEntry.js` thực ra đã có `Cache-Control:
-      immutable` (mặc định của Next cho `/_next/static`) dù không có hash → nguy cơ giữ bản cũ sau
+immutable` (mặc định của Next cho `/_next/static`) dù không có hash → nguy cơ giữ bản cũ sau
       deploy; `next.config.js` của chat/dashboard module nay ép `max-age=0, must-revalidate`. (2) Shell
       prefetch remote dashboard khi hover/focus link Dashboard (`Sidebar.tsx`). Chưa đo lại trên Vercel;
       NFR1 mobile (LCP 4.0 s) vẫn chưa đạt và cần quyết định riêng._
