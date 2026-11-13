@@ -120,4 +120,44 @@ describe("useChatViewModel", () => {
     expect(result.current.messages).toHaveLength(2);
     expect(result.current.messages[1].id).toBe(streamingId);
   });
+
+  it("keeps the partial agent message with interrupted status and skips the store update", async () => {
+    sendPromptMock.mockImplementation(async (_prompt, options) => {
+      options?.onDelta?.("một phần");
+      return {
+        message: {
+          id: "x",
+          role: "agent",
+          content: "một phần",
+          status: "interrupted",
+          createdAt: "now",
+        },
+      };
+    });
+    const { result } = renderHook(() => useChatViewModel());
+
+    await act(async () => {
+      await result.current.submitPrompt("hi");
+    });
+
+    expect(result.current.messages).toHaveLength(2);
+    expect(result.current.messages[1]).toMatchObject({ content: "một phần", status: "interrupted" });
+    expect(useIntegrationStore.getState().lastToolCall).toBeNull();
+  });
+
+  it("keeps already-streamed text and adds an error message when the call rejects midway", async () => {
+    sendPromptMock.mockImplementation(async (_prompt, options) => {
+      options?.onDelta?.("dở dang");
+      throw new Error("boom");
+    });
+    const { result } = renderHook(() => useChatViewModel());
+
+    await act(async () => {
+      await result.current.submitPrompt("hi");
+    });
+
+    expect(result.current.messages.map((m) => m.status)).toEqual(["sent", "sent", "error"]);
+    expect(result.current.messages[1].content).toBe("dở dang");
+    expect(result.current.isSending).toBe(false);
+  });
 });

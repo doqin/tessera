@@ -55,6 +55,15 @@ shared: ... })`. Cùng nền tảng/phiên bản/workaround với Shell (Next.js
 - Khi triển khai đầy đủ (giai đoạn sau): dùng `fetch` (không thêm SDK ngoài Tech Stack — Constitution
   §4), timeout 15s (Clarify §9), dữ liệu mẫu/dummy only (NFR7, NDA).
 
+### 3.1 Tool-call (T016)
+
+- `services/tools.ts`: `TOOL_DEFINITIONS` (OpenAI/Groq `tools` shape) + `executeTool(name, params)`
+  trả dữ liệu giả cho `get_weather`, `search_docs` (xem spec §9). Dùng chung bởi proxy (gửi
+  `tools`) và `chatService` (chạy tool).
+- `groqProxy.ts` thêm `tools` + `tool_choice: "auto"` vào request tới Groq.
+- `chatService.ts` gom `delta.tool_calls[index]` (id, `function.name`, `function.arguments` theo
+  mảnh) → khi stream kết thúc đúng cách, parse `arguments`, chạy `executeTool`, trả `toolCall`.
+
 ## 4. ViewModel — `useChatViewModel.ts`
 
 - State: `messages: Message[]`, `isSending: boolean`.

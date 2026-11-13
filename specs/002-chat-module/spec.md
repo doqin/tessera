@@ -98,6 +98,16 @@ spec này qua Clarify + Checklist. `plan.md` và `tasks.md` đã có trong thư 
   (partial content) kèm chỉ báo nhỏ "phản hồi bị ngắt" thay vì xoá mất nội dung đã stream — không
   tự động resume (ngoài phạm vi PoC).
 
+- **Tool-call thật (T016):** PoC định nghĩa 2 tool mẫu, chỉ trả dữ liệu giả (NFR7): `get_weather`
+  (`{ city: string }` → object `{ city, temperatureC, condition }`) và `search_docs`
+  (`{ query: string }` → mảng `{ title, snippet }`) — cố tình khác kiểu `result` (object/array) để
+  Dashboard hiển thị đủ kiểu dữ liệu (003 FR3). Proxy gửi `tools` tới Groq; `chatService` gom
+  `delta.tool_calls` của stream, chạy tool giả ngay trong module Chat rồi cập nhật `lastToolCall`
+  (kèm `result`). Không gửi kết quả tool ngược lại cho model (không vòng gọi thứ hai) — ngoài phạm
+  vi PoC; nếu model chỉ trả tool-call mà không có text, message agent hiển thị "Đã gọi tool <tên>".
+  Tool lạ hoặc `arguments` không phải JSON object hợp lệ → bỏ qua, không ghi `lastToolCall`. Nhiều
+  tool-call trong một lượt → lấy cái cuối (store chỉ lưu `lastToolCall`).
+
 ## 10. Checklist
 
 - [x] Mọi Functional Requirement (FR1–FR5) có Acceptance Criteria tương ứng kiểm thử được.
