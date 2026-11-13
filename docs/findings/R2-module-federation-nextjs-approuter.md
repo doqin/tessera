@@ -284,9 +284,11 @@ nhau không tái diễn vì plugin tự đặt `output.uniqueName` theo `name` �
   dụng được nếu cần SSR cho nội dung của remote.
 - Runtime federation yêu cầu mỗi chunk của page host bằng URL sai dạng `/autostatic/chunks/app/
 page-*.js` (404), song song với lượt tải đúng `/_next/static/...` do loader của Next thực hiện.
-  Trang vẫn hoạt động nhưng sinh 404 thừa, và chưa kiểm chứng cho các route chunk khác.
-- Dev mode báo cảnh báo thiếu `version` cho shared module `react`/`react-dom` vendored (có thể xử
-  lý bằng cách khai báo `version` tường minh; chưa làm).
+  **Đã xử lý (T015):** nguyên nhân là `apply-client-plugins.js` của nextjs-mf đổi
+  `output.publicPath` từ `"/_next/"` sang `"auto"`; Shell đặt lại `"/_next/"` ngay sau khi plugin
+  apply. Kiểm bằng production build + browser: không còn request `autostatic`, cả hai remote vẫn nạp.
+- Dev mode báo cảnh báo thiếu `version` cho shared module `react`/`react-dom` vendored. **Đã xử lý
+  (T015):** khai báo `version: "18.2.0"` tường minh ở `shared` của cả 3 app.
 - Hạ cấp phụ thuộc: Next.js 13.5 + React 18 (thay vì Next 15.5 + React 19), và không còn dùng được
   `next.config.ts` (Next < 15 chỉ nhận `next.config.js`/`.mjs`).
 - Mới thử remote đơn giản, chưa thử với `packages/shared-ui`, `packages/integration-store` (Zustand
