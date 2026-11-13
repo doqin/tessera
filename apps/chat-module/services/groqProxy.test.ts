@@ -69,7 +69,10 @@ describe("groqProxy", () => {
     expect(JSON.parse(init.body)).toMatchObject({
       stream: true,
       messages: [{ role: "user", content: "hello" }],
+      tool_choice: "auto",
     });
+    const sentTools = JSON.parse(init.body).tools as { function: { name: string } }[];
+    expect(sentTools.map((t) => t.function.name)).toEqual(["get_weather", "search_docs"]);
   });
 
   it("honours GROQ_MODEL", async () => {

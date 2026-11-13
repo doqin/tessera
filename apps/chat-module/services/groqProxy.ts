@@ -3,6 +3,7 @@
  * `/chat/completions` với `stream: true`, giữ `GROQ_API_KEY` ở phía server (code của remote chạy
  * trong trình duyệt của Shell nên không được chứa key). Tách khỏi `route.ts` để unit test được.
  */
+import { TOOL_DEFINITIONS } from "./tools";
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 // Cùng model với tools/llm-trial/test-llm-connection.mjs; đổi bằng GROQ_MODEL.
@@ -55,6 +56,8 @@ export async function handleChatRequest(request: Request): Promise<Response> {
         model: process.env.GROQ_MODEL ?? DEFAULT_MODEL,
         messages: [{ role: "user", content: prompt }],
         stream: true,
+        tools: TOOL_DEFINITIONS,
+        tool_choice: "auto",
       }),
       signal: request.signal,
     });

@@ -17,10 +17,24 @@ import DashboardModule from "../apps/dashboard-module/components/DashboardModule
 // chat-module, trả SSE kiểu Groq) — phần còn lại của luồng Chat → store → Dashboard chạy thật.
 function mockChatApi() {
   Object.assign(global, { TextDecoder });
-  const encoded = new TextEncoder().encode(
-    `data: ${JSON.stringify({ choices: [{ delta: { content: "phản hồi" } }] })}\n\ndata: [DONE]\n\n`,
-  );
-  global.fetch = jest.fn(async () => {
+  global.fetch = jest.fn(async (_url: unknown, init?: RequestInit) => {
+    const { prompt } = JSON.parse(String(init?.body)) as { prompt: string };
+    const sse = (delta: object, finish?: string) =>
+      `data: ${JSON.stringify({ choices: [{ delta, finish_reason: finish ?? null }] })}\n\n`;
+    // Model gọi tool search_docs với query = prompt người dùng.
+    const encoded = new TextEncoder().encode(
+      sse({
+        tool_calls: [
+          {
+            index: 0,
+            id: `call-${prompt}`,
+            function: { name: "search_docs", arguments: JSON.stringify({ query: prompt }) },
+          },
+        ],
+      }) +
+        sse({}, "tool_calls") +
+        "data: [DONE]\n\n",
+    );
     let sent = false;
     return {
       ok: true,
@@ -66,11 +80,11 @@ describe("Chat ⇄ Dashboard integration", () => {
     await user.click(screen.getByRole("button", { name: "Gửi" }));
 
     await waitFor(() => {
-      expect(within(dashboard).getByText("mock_search")).toBeInTheDocument();
+      expect(within(dashboard).getByText("search_docs")).toBeInTheDocument();
     });
     expect(within(dashboard).getByText("query")).toBeInTheDocument();
     expect(within(dashboard).getByText("tìm tài liệu")).toBeInTheDocument();
-    expect(useIntegrationStore.getState().lastToolCall?.name).toBe("mock_search");
+    expect(useIntegrationStore.getState().lastToolCall?.name).toBe("search_docs");
   });
 
   it("re-renders Dashboard with the latest tool call after a second prompt", async () => {

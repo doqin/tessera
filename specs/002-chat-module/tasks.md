@@ -46,9 +46,15 @@ Nguồn: `plan.md`. `[x]` = đã thực hiện (phiên "D2 Foundation Setup" và
 - [x] **T013** Streaming thật: route proxy SSE của Groq (`stream: true`), `chatService` đọc từng
       chunk và gọi `onDelta`; `useChatViewModel` cập nhật một message agent tại chỗ nên
       `MessageBubble` tăng dần theo chunk (FR3, AC2). _(`toolCall` vẫn là mẫu cố định đến T016.)_
-- [ ] **T014** Xử lý lỗi/timeout thật (15s, Clarify §9) — hiển thị message lỗi trong danh sách.
-- [ ] **T015** Xử lý streaming bị ngắt giữa chừng (Clarify §9) — giữ partial content + chỉ báo.
-- [ ] **T016** Tool-call detection thật từ response Groq (không còn mock `toolCall` cố định) →
-      `integrationStore.setLastToolCall`.
-- [ ] **T017** Coverage ≥70% cho toàn bộ `hooks/`+`services/` sau khi có logic thật (không chỉ
-      mock).
+- [x] **T014** Xử lý lỗi/timeout thật (15s, Clarify §9) — hiển thị message lỗi trong danh sách.
+      _(`chatService.sendPrompt`: timeout 15s theo kiểu "không có dữ liệu mới" (đặt lại mỗi chunk),
+      ném `ChatTimeoutError`; `useChatViewModel` thêm message `status: "error"`. Chưa kiểm với Groq thật.)_
+- [x] **T015** Xử lý streaming bị ngắt giữa chừng (Clarify §9) — giữ partial content + chỉ báo.
+      _(Lỗi mạng/timeout/đóng stream thiếu `[DONE]`/`finish_reason` khi đã có nội dung → message
+      `status: "interrupted"` (`MessageBubble` hiện chỉ báo), không ghi `lastToolCall`; chưa có nội dung → reject.)_
+- [x] **T016** Tool-call detection thật từ response Groq (không còn mock `toolCall` cố định) →
+      `integrationStore.setLastToolCall`. _(2 tool mẫu `get_weather`/`search_docs` trong
+      `services/tools.ts`; proxy gửi `tools`; `chatService` gom `delta.tool_calls`, chạy tool giả,
+      trả `toolCall` kèm `result`. Chưa kiểm với Groq thật — cần key và model hỗ trợ tool-calling.)_
+- [x] **T017** Coverage ≥70% cho toàn bộ `hooks/`+`services/` sau khi có logic thật (không chỉ
+      mock). _(Đo sau T014–T016: statements 97.8%, branches 93.3%.)_
