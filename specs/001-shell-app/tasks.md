@@ -76,5 +76,23 @@ Next.js 13.5.11 + Module Federation — xem `docs/findings/R2-module-federation-
       điều hướng sang `/chat` vẫn chạy. `/api/chat` được mock ở mức trình duyệt (SSE kiểu Groq có
       tool-call) — không gọi Groq thật. Chạy lặp 24/24 pass trên máy phát triển; chưa có kết quả CI
       (job bị khoá do billing).)_
-- [ ] **T017** Kiểm thử NFR thực đo (First Load <3s, điều hướng <300ms, Lighthouse ≥80) — cần môi
-      trường deploy thật (sau T013).
+- [x] **T017** Kiểm thử NFR thực đo (First Load <3s, điều hướng <300ms, Lighthouse ≥80) — cần môi
+      trường deploy thật (sau T013). Đo lần đầu 2026-11-04 (003 T016), đo lại sau khi sửa
+      2026-11-13 trên https://tessera-shell.vercel.app (Chromium + Lighthouse 13, máy phát triển
+      tại Việt Nam):
+
+      - **NFR2 điều hướng.** Nguyên nhân thật của "lần đầu 406–421 ms" không phải mạng mà là React
+        giữ fallback Suspense tối thiểu ~300 ms của `next/dynamic` (đo được 305 ms cả trên
+        localhost, không có request nào lúc click). Đã bỏ `next/dynamic` cho remote (PR #16,
+        `useRemoteComponent`). Production sau sửa, đo trong trang từ lúc click tới lúc nội dung
+        hiện: có hover trước (remote đã prefetch) ≈ 7–18 ms; không hover (remote chưa nạp), 8 lần:
+        157–344 ms, trung vị ≈ 210 ms, 2/8 lần ≥300 ms (344, 300) vì phải tải `remoteEntry.js`.
+        E2E `e2e/shell.spec.ts` khoá ngưỡng <300 ms cho trường hợp đã prefetch.
+      - **NFR1/NFR3.** Lighthouse Performance (mobile mô phỏng mặc định): `/chat` 100, `/dashboard`
+        100; LCP `/chat` 0.8–0.9 s (4 lần), `/dashboard` 0.9 s; FCP 0.8–0.9 s; TBT 60–70 ms; CLS 0.
+        Desktop: 99 / 100, LCP 0.9 s / 0.3 s. Đạt First Load <3 s và Lighthouse ≥80.
+      - **Lưu ý.** Lần đo 2026-11-04 cho LCP mobile 4.0 s, lần này 0.8–0.9 s; chưa xác định nguyên
+        nhân chênh lệch (công cụ khác — Edge headless vs Chromium, thời điểm, cold start Vercel).
+        `remoteEntry.js` luôn được tải kèm `?t=<timestamp>` nên trình duyệt không giữ bản cũ dù
+        Vercel gắn `Cache-Control: immutable`; cấu hình `headers()` trong `next.config.js` và
+        `vercel.json` đều không đổi được header này trên Vercel (đã thử trên preview).
