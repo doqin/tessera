@@ -3,6 +3,10 @@ process.env.NEXT_PRIVATE_LOCAL_WEBPACK = "true";
 
 const NextFederationPlugin = require("@module-federation/nextjs-mf");
 
+// React vendored của Next không có `version` trong package.json → khai báo tường minh để federation
+// không cảnh báo. Giữ khớp với `react` ghim ở package.json.
+const REACT_VERSION = "18.2.0";
+
 /**
  * Chat module (remote) — expose `./ChatModule` qua Module Federation trên Next.js 13.5.11 (App
  * Router). Vẫn chạy độc lập được ở :3001 (dev/test riêng). Giải thích các workaround:
@@ -51,6 +55,7 @@ const nextConfig = {
             requiredVersion: false,
             import: "next/dist/compiled/react",
             shareKey: "react",
+            version: REACT_VERSION,
             eager: true,
           },
           "react/jsx-runtime": {
@@ -58,6 +63,7 @@ const nextConfig = {
             requiredVersion: false,
             import: "next/dist/compiled/react/jsx-runtime",
             shareKey: "react/jsx-runtime",
+            version: REACT_VERSION,
             eager: true,
           },
           "react-dom": {
@@ -65,6 +71,7 @@ const nextConfig = {
             requiredVersion: false,
             import: "next/dist/compiled/react-dom",
             shareKey: "react-dom",
+            version: REACT_VERSION,
             eager: true,
           },
           "@tessera/integration-store": { singleton: true, requiredVersion: false, eager: true },

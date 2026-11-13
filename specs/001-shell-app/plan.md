@@ -134,9 +134,9 @@ Model/service riêng. `Sidebar.tsx` là ViewModel-glue: đọc `usePathname()`, 
 
 ## 7. Hạn chế đã biết
 
-- Remote **chỉ render phía client** (không SSR cho nội dung remote).
-- Request thừa tới URL sai `/autostatic/chunks/...` (404) do federation runtime — trang vẫn hoạt
-  động (findings §13.4); cảnh báo build vô hại: `Failed to patch lockfile ... 'os'` (Next 13.5 với
+- Remote **chỉ render phía client** (không SSR cho nội dung remote) — quyết định có chủ đích (T015).
+- ~~Request thừa tới URL sai `/autostatic/chunks/...` (404)~~ — đã sửa ở Shell (đặt lại
+  `output.publicPath = "/_next/"` sau khi nextjs-mf đổi thành `"auto"`, tasks T015); cảnh báo build vô hại: `Failed to patch lockfile ... 'os'` (Next 13.5 với
   lockfile npm 11), `Skipped not serializable cache item` (module federation không vào cache bền
   của webpack → build chậm hơn), log `.next/ssr does not exist`.
 - Cấu hình dựa vào chi tiết nội bộ của nextjs-mf/Next.js (cờ `appDirEnabled`, React vendored) →

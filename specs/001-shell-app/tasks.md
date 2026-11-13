@@ -53,9 +53,17 @@ Next.js 13.5.11 + Module Federation — xem `docs/findings/R2-module-federation-
       (`apps/dashboard-module`, :3002). _(Đã mount qua `apps/shell/components/RemoteDashboard.tsx`,
       commit `482e645`; module làm theo `specs/003-dashboard-module/` — T001–T011 đã xong, còn lại xem
       spec 003.)_
-- [ ] **T015** Giải quyết/ghi nhận các hạn chế còn lại của MF (plan §7): request thừa
+- [x] **T015** Giải quyết/ghi nhận các hạn chế còn lại của MF (plan §7): request thừa
       `/autostatic/...` (404), shared module thiếu `version` (cảnh báo dev), xem xét SSR cho remote
       nếu cần.
+      _(Đã sửa, kiểm bằng production build + browser thật (3 app `next start`): (1) `/autostatic/...`
+      — nguyên nhân: `nextjs-mf` đổi `output.publicPath` `"/_next/"` → `"auto"` ở client compiler nên
+      runtime nối `"auto" + "static/chunks/..."`; Shell đặt lại `"/_next/"` sau khi plugin apply
+      (`apps/shell/next.config.js`) → không còn request `autostatic`, remote vẫn nạp, điều hướng mềm
+      không reload. (2) Khai báo `version: "18.2.0"` cho `react`/`react/jsx-runtime`/`react-dom` ở cả
+      3 app → hết 3 cảnh báo "No version specified" khi build. (3) SSR cho remote: **quyết định không
+      làm** — Chat/Dashboard là widget tương tác phía client, nạp `ssr: false` đã đủ; ghi nhận là hạn
+      chế có chủ đích (plan §7). Chưa đo lại trên Vercel.)_
 - [ ] **T016** Integration test tự động Shell ⇄ remote (nạp remote, điều hướng không reload,
       `lastToolCall` ghi bởi remote **được Shell/Dashboard đọc live** — kiểm chứng store singleton
       thực sự chung 1 instance, fallback khi remote down) — cần Chat module có nội dung thật.

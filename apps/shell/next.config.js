@@ -3,6 +3,10 @@ process.env.NEXT_PRIVATE_LOCAL_WEBPACK = "true";
 
 const NextFederationPlugin = require("@module-federation/nextjs-mf");
 
+// React vendored của Next không có `version` trong package.json → khai báo tường minh để federation
+// không cảnh báo. Giữ khớp với `react` ghim ở package.json.
+const REACT_VERSION = "18.2.0";
+
 const CHAT_MODULE_URL = process.env.NEXT_PUBLIC_CHAT_MODULE_URL ?? "http://localhost:3001";
 const DASHBOARD_MODULE_URL =
   process.env.NEXT_PUBLIC_DASHBOARD_MODULE_URL ?? "http://localhost:3002";
@@ -57,6 +61,7 @@ const nextConfig = {
             requiredVersion: false,
             import: "next/dist/compiled/react",
             shareKey: "react",
+            version: REACT_VERSION,
             eager: true,
           },
           "react/jsx-runtime": {
@@ -64,6 +69,7 @@ const nextConfig = {
             requiredVersion: false,
             import: "next/dist/compiled/react/jsx-runtime",
             shareKey: "react/jsx-runtime",
+            version: REACT_VERSION,
             eager: true,
           },
           "react-dom": {
@@ -71,6 +77,7 @@ const nextConfig = {
             requiredVersion: false,
             import: "next/dist/compiled/react-dom",
             shareKey: "react-dom",
+            version: REACT_VERSION,
             eager: true,
           },
           // Integration Layer: 1 instance store dùng chung giữa Shell và Chat module.
@@ -83,8 +90,14 @@ const nextConfig = {
       }),
     );
     config.plugins.push({
-      apply() {
+      apply(compiler) {
         if (manifestPlugin) manifestPlugin.appDirEnabled = true;
+        // nextjs-mf đổi output.publicPath "/_next/" → "auto"; runtime của Next không suy ra được
+        // đường dẫn từ script nên URL chunk thành "autostatic/chunks/..." (404). Shell là host tự
+        // phục vụ chunk của mình, chunk của remote do remoteEntry của remote tự định vị → đặt lại.
+        if (compiler.options.output.publicPath === "auto") {
+          compiler.options.output.publicPath = "/_next/";
+        }
       },
     });
 
