@@ -1,24 +1,22 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { loadChatRemote } from "./chatRemote";
 import { RemoteModuleBoundary } from "./RemoteModuleBoundary";
+import { useRemoteComponent } from "./useRemoteComponent";
 
-const ChatModule = dynamic(loadChatRemote, {
-  ssr: false,
-  // next/dynamic báo lỗi nạp qua prop `error` của `loading` thay vì throw — ném lại để
-  // RemoteModuleBoundary bắt được (spec FR5/AC5).
-  loading: ({ error }) => {
-    if (error) throw error;
+function ChatLoader() {
+  const ChatModule = useRemoteComponent(loadChatRemote);
+  if (!ChatModule) {
     return <p style={{ color: "var(--dq-color-muted)" }}>Đang tải Chat module…</p>;
-  },
-});
+  }
+  return <ChatModule />;
+}
 
 /** Mount Chat module (remote Module Federation) vào vùng nội dung route `/chat`. */
 export function RemoteChat() {
   return (
     <RemoteModuleBoundary moduleName="chat_module">
-      <ChatModule />
+      <ChatLoader />
     </RemoteModuleBoundary>
   );
 }

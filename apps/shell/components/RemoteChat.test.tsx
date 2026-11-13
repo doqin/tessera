@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { RemoteChat } from "./RemoteChat";
 
-// next/dynamic memoize kết quả nạp theo module → trường hợp lỗi nằm ở RemoteChat.error.test.tsx.
+// Trường hợp lỗi nạp nằm ở RemoteChat.error.test.tsx (mock module khác nhau theo file).
 jest.mock("./chatRemote", () => ({
   loadChatRemote: () => Promise.resolve({ default: () => <p>chat remote mounted</p> }),
 }));

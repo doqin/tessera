@@ -79,6 +79,36 @@ test.describe("Shell nạp remote qua Module Federation", () => {
   });
 });
 
+test.describe("NFR2 — điều hướng <300 ms", () => {
+  test("lần điều hướng đầu tới /dashboard sau khi hover link (remote đã prefetch) dưới 300 ms", async ({
+    page,
+  }) => {
+    await page.goto("/chat");
+    await expect(page.getByLabel("Prompt")).toBeVisible();
+
+    const link = page.getByRole("link", { name: "Dashboard" });
+    await link.hover();
+    await page.waitForTimeout(1000); // thời gian prefetch remote khi hover
+
+    // Đo trong trang từ lúc click tới lúc nội dung Dashboard hiện (không tính overhead của Playwright).
+    const ms = await page.evaluate(
+      () =>
+        new Promise<number>((resolve) => {
+          const start = performance.now();
+          const observer = new MutationObserver(() => {
+            if (document.body.innerText.includes("Chưa có tool nào được gọi")) {
+              observer.disconnect();
+              resolve(performance.now() - start);
+            }
+          });
+          observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+          document.querySelector<HTMLAnchorElement>('a[href="/dashboard"]')?.click();
+        }),
+    );
+    expect(ms).toBeLessThan(300);
+  });
+});
+
 test.describe("lastToolCall từ Chat được Dashboard đọc qua store dùng chung", () => {
   test("tool call ghi bởi remote Chat hiện ở Dashboard, giá trị mới nhất thắng, sống sau reload", async ({
     page,
