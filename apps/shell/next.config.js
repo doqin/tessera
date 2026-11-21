@@ -14,12 +14,19 @@ const DASHBOARD_MODULE_URL =
 /**
  * `?t=` do nextjs-mf tự nối bằng `Date.now()` **lúc chạy**, nên mỗi lần nạp trang lại tải lại toàn bộ
  * `remoteEntry.js` (406 KB) — Vercel trả `Cache-Control: immutable` và không cho đổi header, còn
- * `?t=` khác nhau thì không dùng lại được cache. Chốt `t` theo thời điểm **build Shell** để: (1) URL
- * biết trước → `RemotePreload` tải sớm ngay từ HTML, (2) các lần điều hướng sau dùng lại cache.
- * Đổi remote mà không build lại Shell thì người dùng còn cache cũ tới lần deploy Shell kế tiếp —
- * chấp nhận được vì monorepo deploy cả ba app cùng một lần push.
+ * `?t=` khác nhau thì không dùng lại được cache. Chốt `t` theo **deployment của Shell** (không dùng
+ * `Date.now()`): Vercel Build Cache có thể dùng lại webpack runtime của lần build trước, và khi đó
+ * `Date.now()` bị "đóng băng" ở giá trị cũ — shell mới nhưng vẫn trỏ tới `?t=` cũ, khiến trình duyệt
+ * dùng `remoteEntry.js` đã cache (immutable, 1 năm) và hiển thị remote cũ.
+ *
+ * `vercel.json` của mỗi app đặt `remoteEntry.js` về `max-age=0, must-revalidate`, nên kể cả khi
+ * remote được deploy riêng (URL không đổi) trình duyệt vẫn lấy bản mới.
  */
-const REMOTE_ENTRY_TS = process.env.NEXT_PUBLIC_REMOTE_ENTRY_TS ?? String(Date.now());
+const REMOTE_ENTRY_TS =
+  process.env.NEXT_PUBLIC_REMOTE_ENTRY_TS ??
+  process.env.VERCEL_DEPLOYMENT_ID ??
+  process.env.VERCEL_GIT_COMMIT_SHA ??
+  String(Date.now());
 
 const CHAT_MODULE_ENTRY = `${CHAT_MODULE_URL}/_next/static/chunks/remoteEntry.js?t=${REMOTE_ENTRY_TS}`;
 const DASHBOARD_MODULE_ENTRY = `${DASHBOARD_MODULE_URL}/_next/static/chunks/remoteEntry.js?t=${REMOTE_ENTRY_TS}`;
