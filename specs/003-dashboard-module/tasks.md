@@ -67,4 +67,6 @@ Nguồn: `plan.md`. `[x]` = đã thực hiện; `[ ]` = giai đoạn Thực hi�
 immutable` (mặc định của Next cho `/_next/static`) dù không có hash → nguy cơ giữ bản cũ sau
       deploy; `next.config.js` của chat/dashboard module nay ép `max-age=0, must-revalidate`. (2) Shell
       prefetch remote dashboard khi hover/focus link Dashboard (`Sidebar.tsx`). Chưa đo lại trên Vercel;
-      NFR1 mobile (LCP 4.0 s) vẫn chưa đạt và cần quyết định riêng._
+      NFR1 mobile (LCP 4.0 s) vẫn chưa đạt — **đo lại 2026-11-21 xác nhận `/chat` LCP 4,1–4,7 s, điểm
+      70–78** (nguyên nhân: LCP là nội dung remote vẽ sau `remoteEntry.js` 108 KB, xem
+      `specs/001-shell-app/tasks.md` T017); `/dashboard` vẫn đạt (0,9–1,1 s, 86–94)._

@@ -78,8 +78,8 @@ Next.js 13.5.11 + Module Federation — xem `docs/findings/R2-module-federation-
       (job bị khoá do billing).)_
 - [x] **T017** Kiểm thử NFR thực đo (First Load <3s, điều hướng <300ms, Lighthouse ≥80) — cần môi
       trường deploy thật (sau T013). Đo lần đầu 2026-11-04 (003 T016), đo lại sau khi sửa
-      2026-11-13 trên https://tessera-shell.vercel.app (Chromium + Lighthouse 13, máy phát triển
-      tại Việt Nam):
+      2026-11-13, và **đo lại toàn bộ 2026-11-21** trên https://tessera-shell.vercel.app (Chromium +
+      Lighthouse 13.6.0, máy phát triển tại Việt Nam):
 
       - **NFR2 điều hướng.** Nguyên nhân thật của "lần đầu 406–421 ms" không phải mạng mà là React
         giữ fallback Suspense tối thiểu ~300 ms của `next/dynamic` (đo được 305 ms cả trên
@@ -88,11 +88,26 @@ Next.js 13.5.11 + Module Federation — xem `docs/findings/R2-module-federation-
         hiện: có hover trước (remote đã prefetch) ≈ 7–18 ms; không hover (remote chưa nạp), 8 lần:
         157–344 ms, trung vị ≈ 210 ms, 2/8 lần ≥300 ms (344, 300) vì phải tải `remoteEntry.js`.
         E2E `e2e/shell.spec.ts` khoá ngưỡng <300 ms cho trường hợp đã prefetch.
-      - **NFR1/NFR3.** Lighthouse Performance (mobile mô phỏng mặc định): `/chat` 100, `/dashboard`
-        100; LCP `/chat` 0.8–0.9 s (4 lần), `/dashboard` 0.9 s; FCP 0.8–0.9 s; TBT 60–70 ms; CLS 0.
-        Desktop: 99 / 100, LCP 0.9 s / 0.3 s. Đạt First Load <3 s và Lighthouse ≥80.
-      - **Lưu ý.** Lần đo 2026-11-04 cho LCP mobile 4.0 s, lần này 0.8–0.9 s; chưa xác định nguyên
-        nhân chênh lệch (công cụ khác — Edge headless vs Chromium, thời điểm, cold start Vercel).
-        `remoteEntry.js` luôn được tải kèm `?t=<timestamp>` nên trình duyệt không giữ bản cũ dù
+      - **NFR1/NFR3 đo lại 2026-11-21** (Lighthouse 13.6.0, Chromium, mobile mô phỏng mặc định, 3
+        lần/trang — mạng 1.6 Mbps / 150 ms RTT / CPU 4×): `/chat` Performance **78 / 78 / 70**, LCP
+        **4,54 / 4,32 / 4,74 s**, FCP 1,45 / 1,23 / 1,54 s, TBT 222 / 323 / 421 ms, CLS 0;
+        `/dashboard` **94 / 93 / 86**, LCP **1,11 / 0,90 / 0,92 s**, TBT 254 / 308 / 560 ms, CLS 0.
+        → **NFR1 (<3 s) và NFR3 (≥80) đạt trên `/dashboard`, KHÔNG đạt trên `/chat`.**
+      - **Nguyên nhân `/chat` chậm (đã xác định).** Phần tử LCP của `/chat` là khối empty-state của
+        remote Chat ("Chưa có tin nhắn — nhập prompt bên dưới để bắt đầu.", 104×619 px); của
+        `/dashboard` lại là chính câu fallback của Shell ("Đang tải Dashboard module…", vẽ ~0,5 s) nên
+        số đẹp. Chuỗi tải của remote: `remoteEntry.js` 108 KB transfer / 406 KB parse, priority
+        **Low**, chỉ bắt đầu ~1,6–2,0 s (sau khi Shell parse xong framework + webpack), xong 2,2–3,2 s;
+        chunk `__federation_expose_ChatModule` 2,3–3,6 s; React mount xong → nội dung vẽ ở 4,1–4,7 s.
+      - **Số 0,8–0,9 s ghi ngày 2026-11-13 không tái lập được**: 6 lần đo hôm nay đều ≥4,1 s cho
+        `/chat`, còn `/dashboard` vẫn khớp 0,9–1,1 s. Vậy con số đúng là bản 2026-11-04 (LCP 4,0 s,
+        mobile 87); bản "100 / 0,8 s" là đo sai (khả năng cao do cache remote đã ấm). Hết tồn tại
+        "chênh lệch chưa rõ nguyên nhân".
+      - **Hướng sửa (cần quyết định).** (1) `preconnect` tới `tessera-chat-module.vercel.app` và nạp
+        sớm `remoteEntry.js` ngay khi HTML về (preload từ `<head>` / script inline) thay vì đợi Shell
+        parse xong JS — ước tính bớt ~1,5–1,8 s, LCP về ~2,5–3 s. (2) Giảm bundle `remoteEntry.js`
+        hoặc tách phần UI tĩnh của Chat để Shell SSR. (3) Không dùng cách "skeleton to hơn nội dung
+        thật": LCP lấy mốc lớn nhất cuối cùng, skeleton chỉ thắng nếu lớn hơn khối nội dung cuối.
+      - **Lưu ý cache.** `remoteEntry.js` luôn được tải kèm `?t=<timestamp>` nên trình duyệt không giữ bản cũ dù
         Vercel gắn `Cache-Control: immutable`; cấu hình `headers()` trong `next.config.js` và
         `vercel.json` đều không đổi được header này trên Vercel (đã thử trên preview).
