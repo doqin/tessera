@@ -35,7 +35,10 @@ Nguồn: `plan.md`. `[x]` = đã thực hiện; `[ ]` = giai đoạn Thực hi�
 - [x] **T012** Xử lý các kiểu dữ liệu `parameters`/`result` của `lastToolCall` (FR3/AC3): object →
       key-value (`services/payloadFormatter.ts`), array → key `[i]`, chuỗi JSON object/array được
       parse, Error → thông điệp, còn lại `String(value)`; không throw khi không serialize được.
-      _(Chưa làm: rút gọn/thu gọn giá trị dài với nút mở rộng ở FR3 — cần quyết định UI riêng.)_
+      _(Đã bổ sung 2026-11-21: rút gọn/thu gọn giá trị dài — `truncateForPreview` +
+      `PAYLOAD_PREVIEW_LIMIT = 200` ở `services/payloadFormatter.ts`, nút `Mở rộng`/`Thu gọn` cấp khối
+      với `aria-expanded` ở `components/ToolRow.tsx`, reset theo `toolCall.id`. Quyết định UI ghi ở
+      `plan.md` §2; test 8 case trong `ToolRow.test.tsx` + 3 case `truncateForPreview`.)_
 - [x] **T013** Trạng thái `processing` khi `result === undefined`: `DashboardWindow` hiện "Đang xử lý…",
       `ToolRow` hiện "Đang chờ kết quả…" thay vì `undefined`. Có testcase cho cả hai.
 - [x] **T014** Coverage module dashboard (`components/` 100%, `hooks/` 100% statements,
