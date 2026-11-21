@@ -12,6 +12,19 @@ const DASHBOARD_MODULE_URL =
   process.env.NEXT_PUBLIC_DASHBOARD_MODULE_URL ?? "http://localhost:3002";
 
 /**
+ * `?t=` do nextjs-mf tự nối bằng `Date.now()` **lúc chạy**, nên mỗi lần nạp trang lại tải lại toàn bộ
+ * `remoteEntry.js` (406 KB) — Vercel trả `Cache-Control: immutable` và không cho đổi header, còn
+ * `?t=` khác nhau thì không dùng lại được cache. Chốt `t` theo thời điểm **build Shell** để: (1) URL
+ * biết trước → `RemotePreload` tải sớm ngay từ HTML, (2) các lần điều hướng sau dùng lại cache.
+ * Đổi remote mà không build lại Shell thì người dùng còn cache cũ tới lần deploy Shell kế tiếp —
+ * chấp nhận được vì monorepo deploy cả ba app cùng một lần push.
+ */
+const REMOTE_ENTRY_TS = process.env.NEXT_PUBLIC_REMOTE_ENTRY_TS ?? String(Date.now());
+
+const CHAT_MODULE_ENTRY = `${CHAT_MODULE_URL}/_next/static/chunks/remoteEntry.js?t=${REMOTE_ENTRY_TS}`;
+const DASHBOARD_MODULE_ENTRY = `${DASHBOARD_MODULE_URL}/_next/static/chunks/remoteEntry.js?t=${REMOTE_ENTRY_TS}`;
+
+/**
  * Shell (host) — Module Federation trên Next.js 13.5.11 (App Router). Thử lại phương án chính của
  * D2 §3 sau khi lần thử trên Next 15.5 thất bại: xem
  * docs/findings/R2-module-federation-nextjs-approuter.md §13 cho đầy đủ lý do từng workaround.
@@ -20,6 +33,11 @@ const DASHBOARD_MODULE_URL =
  */
 const nextConfig = {
   transpilePackages: ["@tessera/shared-ui", "@tessera/integration-store"],
+  // URL remoteEntry đã chốt `?t=` — `RemotePreload` dùng để phát preconnect/preload ngay trong HTML.
+  env: {
+    NEXT_PUBLIC_CHAT_MODULE_ENTRY: CHAT_MODULE_ENTRY,
+    NEXT_PUBLIC_DASHBOARD_MODULE_ENTRY: DASHBOARD_MODULE_ENTRY,
+  },
   eslint: {
     // Lint đã chạy như bước CI riêng (`npm run lint` — .github/workflows/ci.yml); tắt lint trong
     // `next build` vì môi trường build của Vercel (Root Directory riêng cho từng app) không luôn
@@ -50,8 +68,8 @@ const nextConfig = {
         name: "shell",
         filename: "static/chunks/remoteEntry.js",
         remotes: {
-          chat_module: `chat_module@${CHAT_MODULE_URL}/_next/static/chunks/remoteEntry.js`,
-          dashboard_module: `dashboard_module@${DASHBOARD_MODULE_URL}/_next/static/chunks/remoteEntry.js`,
+          chat_module: `chat_module@${CHAT_MODULE_ENTRY}`,
+          dashboard_module: `dashboard_module@${DASHBOARD_MODULE_ENTRY}`,
         },
         // Chia sẻ đúng bản React vendored của Next (không phải React npm) — App Router cần bản
         // này, chia sẻ React npm làm hỏng chính runtime của Next (`use is not a function`).
