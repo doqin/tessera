@@ -10,7 +10,15 @@ import DashboardWindow from "./DashboardWindow";
  * - ViewModel subscribe store dùng chung (Integration Layer), tự render khi `lastToolCall` thay đổi.
  */
 export default function DashboardModule() {
-  const state = useDashboardViewModel();
+  const { select, setFilter, setQuery, clear, ...state } = useDashboardViewModel();
 
-  return <DashboardWindow state={state} />;
+  return (
+    <DashboardWindow
+      state={state}
+      onSelect={select}
+      onFilterChange={setFilter}
+      onQueryChange={setQuery}
+      onClear={clear}
+    />
+  );
 }

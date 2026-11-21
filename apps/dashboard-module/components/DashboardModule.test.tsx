@@ -13,7 +13,7 @@ const makeToolCall = (overrides = {}) => ({
 
 describe("DashboardModule", () => {
   beforeEach(() => {
-    useIntegrationStore.setState({ lastToolCall: null });
+    useIntegrationStore.setState({ lastToolCall: null, toolCallHistory: [] });
   });
 
   it("renders the empty state when lastToolCall is null", () => {
@@ -25,7 +25,6 @@ describe("DashboardModule", () => {
     const toolCall = makeToolCall({ result: "ok" });
     useIntegrationStore.setState({ lastToolCall: toolCall });
     render(<DashboardModule />);
-    await screen.findByText("mock_tool");
-    expect(screen.getByText("mock_tool")).toBeInTheDocument();
+    expect(screen.getAllByText("mock_tool").length).toBeGreaterThan(0);
   });
 });

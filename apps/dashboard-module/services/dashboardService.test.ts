@@ -1,5 +1,5 @@
 import { useIntegrationStore } from "@tessera/integration-store";
-import { readLastToolCall } from "./dashboardService";
+import { clearToolCallHistory, readLastToolCall, readToolCallHistory } from "./dashboardService";
 
 const makeToolCall = (overrides = {}) => ({
   id: "t1",
@@ -18,6 +18,23 @@ describe("dashboardService.readLastToolCall", () => {
 
   it("returns null when the store has no lastToolCall", () => {
     useIntegrationStore.setState({ lastToolCall: null });
+    expect(readLastToolCall()).toBeNull();
+  });
+});
+
+describe("dashboardService history", () => {
+  it("reads the tool call history", () => {
+    useIntegrationStore.setState({ toolCallHistory: [makeToolCall()] });
+    expect(readToolCallHistory()).toEqual([makeToolCall()]);
+  });
+
+  it("clears the history through the store", () => {
+    useIntegrationStore.setState({
+      lastToolCall: makeToolCall(),
+      toolCallHistory: [makeToolCall()],
+    });
+    clearToolCallHistory();
+    expect(readToolCallHistory()).toEqual([]);
     expect(readLastToolCall()).toBeNull();
   });
 });
