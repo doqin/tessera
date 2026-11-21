@@ -69,4 +69,6 @@ immutable` (mặc định của Next cho `/_next/static`) dù không có hash �
       prefetch remote dashboard khi hover/focus link Dashboard (`Sidebar.tsx`). Chưa đo lại trên Vercel;
       NFR1 mobile (LCP 4.0 s) vẫn chưa đạt — **đo lại 2026-11-21 xác nhận `/chat` LCP 4,1–4,7 s, điểm
       70–78** (nguyên nhân: LCP là nội dung remote vẽ sau `remoteEntry.js` 108 KB, xem
-      `specs/001-shell-app/tasks.md` T017); `/dashboard` vẫn đạt (0,9–1,1 s, 86–94)._
+      `specs/001-shell-app/tasks.md` T017); `/dashboard` vẫn đạt (0,9–1,1 s, 86–94). Sau PR #22
+      (preload + chốt `?t=`), đo lại production: `/chat` **3,21–3,34 s, điểm 92–93**, `/dashboard`
+      **0,85–1,37 s, điểm 99–100**._
