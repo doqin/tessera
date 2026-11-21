@@ -1,4 +1,4 @@
-import { toPayloadView } from "./payloadFormatter";
+import { PAYLOAD_PREVIEW_LIMIT, toPayloadView, truncateForPreview } from "./payloadFormatter";
 
 describe("toPayloadView", () => {
   it("turns a plain object into key-value entries", () => {
@@ -90,5 +90,25 @@ describe("toPayloadView", () => {
       }
     }
     expect(toPayloadView(new Hostile())).toEqual({ kind: "text", text: "[object Object]" });
+  });
+});
+
+describe("truncateForPreview", () => {
+  it("keeps short values intact and reports no truncation", () => {
+    expect(truncateForPreview("short value")).toEqual({
+      text: "short value",
+      truncated: false,
+    });
+    expect(truncateForPreview("x".repeat(PAYLOAD_PREVIEW_LIMIT)).truncated).toBe(false);
+  });
+
+  it("cuts long values at the limit and appends an ellipsis", () => {
+    const result = truncateForPreview("a".repeat(PAYLOAD_PREVIEW_LIMIT + 50));
+    expect(result.truncated).toBe(true);
+    expect(result.text).toBe(`${"a".repeat(PAYLOAD_PREVIEW_LIMIT)}…`);
+  });
+
+  it("honours a custom limit and trims trailing whitespace before the ellipsis", () => {
+    expect(truncateForPreview("abc   def", 6)).toEqual({ text: "abc…", truncated: true });
   });
 });

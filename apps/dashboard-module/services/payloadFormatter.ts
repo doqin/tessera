@@ -12,8 +12,27 @@ export interface PayloadEntry {
   value: string;
 }
 
+/** Số ký tự tối đa của một giá trị ở chế độ thu gọn (FR3). */
+export const PAYLOAD_PREVIEW_LIMIT = 200;
+
 export type PayloadView =
   { kind: "entries"; entries: PayloadEntry[] } | { kind: "text"; text: string };
+
+export interface TruncatedText {
+  /** Chuỗi hiển thị (đã rút gọn kèm "…" nếu quá dài). */
+  text: string;
+  /** True khi giá trị dài hơn `limit` và cần nút mở rộng. */
+  truncated: boolean;
+}
+
+/**
+ * Rút gọn giá trị dài cho chế độ thu gọn (FR3): giữ `limit` ký tự đầu + "…".
+ * Giá trị ngắn hơn/không quá `limit` trả nguyên văn và `truncated: false`.
+ */
+export function truncateForPreview(value: string, limit = PAYLOAD_PREVIEW_LIMIT): TruncatedText {
+  if (value.length <= limit) return { text: value, truncated: false };
+  return { text: `${value.slice(0, limit).trimEnd()}…`, truncated: true };
+}
 
 export function toPayloadView(value: unknown): PayloadView {
   if (value instanceof Error) return { kind: "text", text: value.message };
