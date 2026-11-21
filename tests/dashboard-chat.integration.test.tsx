@@ -66,7 +66,7 @@ function renderShellLikeLayout() {
 
 describe("Chat ⇄ Dashboard integration", () => {
   beforeEach(() => {
-    useIntegrationStore.setState({ lastToolCall: null });
+    useIntegrationStore.setState({ lastToolCall: null, toolCallHistory: [], chatTranscript: [] });
     mockChatApi();
   });
 
@@ -80,7 +80,7 @@ describe("Chat ⇄ Dashboard integration", () => {
     await user.click(screen.getByRole("button", { name: "Gửi" }));
 
     await waitFor(() => {
-      expect(within(dashboard).getByText("search_docs")).toBeInTheDocument();
+      expect(within(dashboard).getAllByText("search_docs").length).toBeGreaterThan(0);
     });
     expect(within(dashboard).getByText("query")).toBeInTheDocument();
     expect(within(dashboard).getByText("tìm tài liệu")).toBeInTheDocument();

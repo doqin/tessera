@@ -1,7 +1,8 @@
 # Spec: Application Shell (001-shell-app)
 
-- **Status:** Implemented (foundation) — Module Federation trên Next.js 13.5.11 (xem §11 Lịch sử
-  quyết định, `docs/findings/R2-module-federation-nextjs-approuter.md`)
+- **Status:** Implemented — Module Federation trên Next.js 13.5.11 (xem §11 Lịch sử quyết định,
+  `docs/findings/R2-module-federation-nextjs-approuter.md`); giao diện & chrome trình diễn theo
+  `specs/004-ui-ux-redesign/spec.md`
 - **Liên quan:** UIT.SE.66-D3 §3 (Application Shell), UIT.SE.66-D1 §4 (quy trình SDD),
   UIT.SE.66-D2 (Tech Stack)
 
@@ -22,6 +23,10 @@ thống nhất dù các module được build và deploy độc lập.
 - Áp dụng shared design system (dqcss + theme Groq trong `packages/shared-ui`) ở tầng shell.
 - Khởi tạo global store (Zustand) tại Integration Layer, expose: session id hiện tại, tool call
   gần nhất (`lastToolCall`), trạng thái điều hướng.
+- **Bổ sung (004):** top bar có ô tìm kiếm ở giữa mở command palette (Ctrl/Cmd+K) và nút Cài đặt;
+  theme sáng/tối + ngôn ngữ VI/EN chuyển ở `/settings`; sidebar thu gọn được; status bar hiển thị
+  route/phiên/tool; trang `/overview` mô tả kiến trúc 3 lớp. Chi tiết:
+  `specs/004-ui-ux-redesign/spec.md`.
 
 ### Ngoài phạm vi (Exclusions — Project Charter)
 
@@ -45,6 +50,11 @@ thống nhất dù các module được build và deploy độc lập.
   tasks T016.)
 - **FR5:** Nếu remote không nạp được (server down, lỗi mạng, container lỗi), Shell PHẢI hiển thị
   lỗi/fallback rõ ràng thay vì crash hoặc vùng trống không giải thích, và giữ nguyên header/sidebar.
+- **FR6 (004):** Shell PHẢI có command palette mở bằng Ctrl/Cmd+K hoặc ô tìm kiếm ở giữa top bar;
+  KHÔNG có breadcrumb/brand trong chrome; chuyển theme sáng/tối và ngôn ngữ VI/EN ở `/settings`, áp
+  cho cả remote đang mount (`specs/004-ui-ux-redesign/spec.md` FR2–FR5, FR10–FR14).
+- **FR7 (004):** Shell PHẢI có route `/overview` mô tả 3 lớp kiến trúc và luồng Chat → store →
+  Dashboard (`specs/004-ui-ux-redesign/spec.md` FR9).
 
 ## 4. Non-Functional Requirements (theo Quality Management — Project Charter)
 
@@ -73,6 +83,14 @@ thống nhất dù các module được build và deploy độc lập.
 - **AC5:** Given server Chat module không truy cập được, when người dùng điều hướng tới `/chat`,
   then vùng nội dung hiển thị thông báo lỗi nêu tên module kèm nút tải lại trang, header/sidebar vẫn
   hoạt động (`RemoteModuleBoundary` + runtime plugin báo lỗi của Shell).
+- **AC6 (004):** Given đang ở `/chat`, when người dùng bấm Ctrl/Cmd+K và chọn "Dashboard", then route
+  đổi sang `/dashboard` bằng điều hướng mềm.
+- **AC7 (004):** Given người dùng chọn dark mode, when tải lại trang, then theme tối được áp trước
+  khi React hydrate (không nháy trắng).
+- **AC8 (004):** Given người dùng bấm EN ở `/settings`, when Chat/Dashboard đang mount, then chuỗi UI của
+  cả hai module đổi sang tiếng Anh ngay, không reload.
+- **AC9 (004):** Given mở `/overview`, when trang render, then thấy 4 thẻ lớp, 4 bước luồng và danh
+  sách quyết định thiết kế, đổi ngôn ngữ được.
 
 ## 6. Edge Cases (cần rà soát ở bước Clarify)
 
