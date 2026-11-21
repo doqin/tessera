@@ -51,8 +51,12 @@ Nguồn: `plan.md`. `[x]` = đã thực hiện; `[ ]` = giai đoạn Thực hi�
       và một entry `@tessera/integration-store@0.1.0` (`from: shell`, `loaded: true`). - Fallback: dừng server `dashboard_module` (:3002) rồi tải `/dashboard` → Shell hiện thông báo
       "Không tải được module dashboard_module" kèm nút tải lại; header/sidebar giữ nguyên và điều
       hướng sang `/chat` vẫn hoạt động. Khởi động lại remote rồi tải lại → module hoạt động.
-      _Chưa kiểm chứng: re-render live khi Dashboard đang mounted và store đổi (Shell không đặt Chat và
-      Dashboard trên cùng một màn hình); phần này được bao phủ bởi test Jest ở trên._
+      _Đã kiểm chứng lại 2026-11-21: trang tạm mount Chat và Dashboard cạnh nhau (cùng một phiên,
+      dev servers): gửi prompt → dashboard đổi sang `get_weather` sau **0,77 s** không reload (chat
+      giữ nguyên lịch sử, `location.href` không đổi); prompt thứ hai chuyển dashboard sang
+      `search_docs`; prompt thứ ba với `query` dài ~500 ký tự → dashboard rút gọn + nút `Mở rộng`
+      (khớp T012). Không có lỗi console, không hiện Next dev overlay. Trang tạm đã xoá sau khi đo,
+      không commit — Shell production vẫn chỉ hiển thị một module mỗi route._
 - [x] **T016** Kiểm thử NFR thực đo trên https://tessera-shell.vercel.app (2026-11-04, trình duyệt thật + Lighthouse trên Edge headless): - NFR1 First Load: `/chat` `loadEventEnd` ≈ 201 ms, remote Chat sẵn sàng ≈ 198 ms (cache trình duyệt
       đã ấm). Lighthouse LCP: desktop 1.4 s; mobile **4.0 s** (không đạt <3 s khi mô phỏng mobile). - NFR2 điều hướng mềm `/chat` → `/dashboard`: remote đã cache 5–9 ms (5 lần lặp, đạt <300 ms);
       lần đầu khi remote chưa nạp **406–421 ms** (2 lần, vượt 300 ms). Phần lớn là tải
