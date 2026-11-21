@@ -41,20 +41,27 @@ Nguồn: `plan.md`. `[x]` = đã thực hiện (phiên "D2 Foundation Setup" và
       `CHAT_ALLOWED_ORIGIN`) chỉ nằm phía server (`.env.local`, xem `.env.local.example`); validate
       prompt (≤4000 ký tự), không chuyển tiếp body lỗi của Groq, CORS cho Shell gọi cross-origin.
       `chatService.sendPrompt` gọi `${NEXT_PUBLIC_CHAT_API_URL ?? http://localhost:3001}/api/chat`.
-      _(Đã kiểm: unit test + `next build/start` — OPTIONS 204, thiếu key → 500. Chưa gọi thử Groq thật
-      vì chưa có key trong môi trường; cần chạy tay với key trước khi coi là nghiệm thu.)_
+      _(Đã kiểm: unit test + `next build/start` — OPTIONS 204, thiếu key → 500. **Groq thật
+      2026-11-21**: POST `/api/chat` với key trong `apps/chat-module/.env.local` → `200`, stream SSE
+      đúng shape OpenAI (`data: {...}` từng chunk + `data: [DONE]`), model mặc định
+      `qwen/qwen3.8-27b` trả `delta.tool_calls`; không cần đổi `GROQ_MODEL`.)_
 - [x] **T013** Streaming thật: route proxy SSE của Groq (`stream: true`), `chatService` đọc từng
       chunk và gọi `onDelta`; `useChatViewModel` cập nhật một message agent tại chỗ nên
       `MessageBubble` tăng dần theo chunk (FR3, AC2). _(`toolCall` vẫn là mẫu cố định đến T016.)_
 - [x] **T014** Xử lý lỗi/timeout thật (15s, Clarify §9) — hiển thị message lỗi trong danh sách.
       _(`chatService.sendPrompt`: timeout 15s theo kiểu "không có dữ liệu mới" (đặt lại mỗi chunk),
-      ném `ChatTimeoutError`; `useChatViewModel` thêm message `status: "error"`. Chưa kiểm với Groq thật.)_
+      ném `ChatTimeoutError`; `useChatViewModel` thêm message `status: "error"`. **Groq thật
+      2026-11-21**: nhánh thành công đi qua đường thật (không mock); nhánh timeout mới chỉ có unit
+      test — chưa dựng được upstream treo >15s để đo end-to-end.)_
 - [x] **T015** Xử lý streaming bị ngắt giữa chừng (Clarify §9) — giữ partial content + chỉ báo.
       _(Lỗi mạng/timeout/đóng stream thiếu `[DONE]`/`finish_reason` khi đã có nội dung → message
       `status: "interrupted"` (`MessageBubble` hiện chỉ báo), không ghi `lastToolCall`; chưa có nội dung → reject.)_
 - [x] **T016** Tool-call detection thật từ response Groq (không còn mock `toolCall` cố định) →
       `integrationStore.setLastToolCall`. _(2 tool mẫu `get_weather`/`search_docs` trong
       `services/tools.ts`; proxy gửi `tools`; `chatService` gom `delta.tool_calls`, chạy tool giả,
-      trả `toolCall` kèm `result`. Chưa kiểm với Groq thật — cần key và model hỗ trợ tool-calling.)_
+      trả `toolCall` kèm `result`. **Groq thật 2026-11-21** (`qwen/qwen3.8-27b`): prompt "weather in
+      Hanoi" → stream `delta.tool_calls` (`get_weather`, `{"city":"Hà Nội"}`,
+      `finish_reason: "tool_calls"`, `[DONE]`) → dashboard hiện đúng tool; prompt thứ hai chuyển sang
+      `search_docs`. Model chỉ gọi tool mà không trả text → message "Đã gọi tool get_weather.".)_
 - [x] **T017** Coverage ≥70% cho toàn bộ `hooks/`+`services/` sau khi có logic thật (không chỉ
       mock). _(Đo sau T014–T016: statements 97.8%, branches 93.3%.)_
