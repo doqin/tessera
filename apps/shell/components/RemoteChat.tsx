@@ -1,13 +1,16 @@
 "use client";
 
+import { useT } from "@tessera/shared-ui";
 import { loadChatRemote } from "./chatRemote";
+import { ModuleLoading } from "./ModuleLoading";
 import { RemoteModuleBoundary } from "./RemoteModuleBoundary";
 import { useRemoteComponent } from "./useRemoteComponent";
 
 function ChatLoader() {
+  const t = useT();
   const ChatModule = useRemoteComponent(loadChatRemote);
   if (!ChatModule) {
-    return <p style={{ color: "var(--dq-color-muted)" }}>Đang tải Chat module…</p>;
+    return <ModuleLoading label={t("loading.chat")} />;
   }
   return <ChatModule />;
 }

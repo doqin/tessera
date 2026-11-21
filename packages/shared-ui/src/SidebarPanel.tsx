@@ -1,67 +1,44 @@
 "use client";
 
-import { useId, useState, type PropsWithChildren } from "react";
+import type { PropsWithChildren, ReactNode } from "react";
+import { Icon } from "./Icon";
+import { useT } from "./i18n";
+import { useSidebarState } from "./sidebarState";
 
 export interface SidebarPanelProps extends PropsWithChildren {
-  title?: string;
-  /** Trạng thái thu gọn ban đầu (uncontrolled). */
-  defaultCollapsed?: boolean;
+  /** Khối cuối sidebar (tuỳ chọn) — ở shell hiện không dùng để giữ rail sạch. */
+  footer?: ReactNode;
 }
 
 /**
- * Sidebar dạng panel (.dq-panel — cùng kiểu với panel của Chat module) có thể thu gọn.
- * Thanh tiêu đề giữ nút bật/tắt; khi thu gọn chỉ còn nút đó.
+ * Sidebar điều hướng. Nút thu gọn thu cả rail về 72px (icon + tooltip), không chỉ ẩn nav;
+ * trạng thái sống ở `SidebarStateProvider` để Layout đổi được bề rộng.
  */
-export function SidebarPanel({
-  title = "Menu",
-  defaultCollapsed = false,
-  children,
-}: SidebarPanelProps) {
-  const [collapsed, setCollapsed] = useState(defaultCollapsed);
-  const bodyId = useId();
+export function SidebarPanel({ footer, children }: SidebarPanelProps) {
+  const t = useT();
+  const { collapsed, toggle } = useSidebarState();
 
   return (
-    <div
-      className="dq-panel"
-      style={{
-        gap: 0,
-        paddingBottom: 0,
-        width: collapsed ? "auto" : "14rem",
-      }}
-    >
-      <div
-        className="dq-panel__title"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: collapsed ? "center" : "space-between",
-          gap: "var(--dq-space-2)",
-          borderBottom: collapsed ? "none" : undefined,
-        }}
-      >
-        {collapsed ? null : <span>{title}</span>}
+    <>
+      <div className="ts-sidebar__nav">{children}</div>
+      <div className="ts-sidebar__foot">
+        {!collapsed && footer ? footer : null}
         <button
           type="button"
-          className="dq-btn dq-btn--primary"
-          onClick={() => setCollapsed((value) => !value)}
+          className="ts-mini-btn ts-collapse"
+          onClick={toggle}
           aria-expanded={!collapsed}
-          aria-controls={bodyId}
-          aria-label={collapsed ? "Mở rộng menu" : "Thu gọn menu"}
-          style={{ padding: "0 var(--dq-space-2)", marginBottom: "var(--dq-shadow-offset)" }}
+          aria-label={collapsed ? t("nav.expand") : t("nav.collapse")}
+          title={collapsed ? t("nav.expand") : t("nav.collapse")}
         >
-          {collapsed ? "»" : "«"}
+          <Icon
+            name="chevron"
+            size={14}
+            style={{ transform: collapsed ? "none" : "rotate(180deg)" }}
+          />
+          {collapsed ? null : <span className="ts-collapse__label">{t("nav.collapse")}</span>}
         </button>
       </div>
-      <div
-        id={bodyId}
-        hidden={collapsed}
-        style={{
-          margin: "0 calc(var(--dq-panel-pad) * -1)",
-          padding: "var(--dq-space-2) 0 var(--dq-panel-pad)",
-        }}
-      >
-        {children}
-      </div>
-    </div>
+    </>
   );
 }

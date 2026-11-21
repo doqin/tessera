@@ -10,7 +10,7 @@ describe("Card", () => {
 
   it("applies the shared card classes", () => {
     render(<Card data-testid="card">Card</Card>);
-    expect(screen.getByTestId("card").className).toContain("dq-panel");
+    expect(screen.getByTestId("card").className).toContain("ts-card");
   });
 
   it("merges a custom className with the base classes", () => {
@@ -20,7 +20,7 @@ describe("Card", () => {
       </Card>,
     );
     expect(screen.getByTestId("card").className).toContain("extra-class");
-    expect(screen.getByTestId("card").className).toContain("dq-panel");
+    expect(screen.getByTestId("card").className).toContain("ts-card");
   });
 
   it("forwards ref to the underlying div element", () => {

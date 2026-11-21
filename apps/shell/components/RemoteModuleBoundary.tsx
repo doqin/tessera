@@ -1,6 +1,7 @@
 "use client";
 
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { RemoteErrorFallback } from "./RemoteErrorFallback";
 
 interface RemoteModuleBoundaryProps {
   moduleName: string;
@@ -33,43 +34,10 @@ export class RemoteModuleBoundary extends Component<
   render() {
     if (this.state.error) {
       return (
-        <div
-          role="alert"
-          className="dq-panel"
-          style={{
-            padding: "var(--dq-space-4)",
-            color: "var(--dq-color-fg)",
-            backgroundColor: "var(--dq-color-bg)",
-          }}
-        >
-          <p style={{ fontWeight: 700 }}>
-            Không tải được module &ldquo;{this.props.moduleName}&rdquo;.
-          </p>
-          <p
-            style={{
-              marginTop: "var(--dq-space-1)",
-              color: "var(--dq-color-muted)",
-            }}
-          >
-            {this.state.error.message}
-          </p>
-          <button
-            type="button"
-            style={{
-              marginTop: "var(--dq-space-3)",
-              padding: "var(--dq-space-2) var(--dq-space-4)",
-              border: "2px solid var(--dq-color-primary)",
-              background: "var(--dq-color-primary)",
-              color: "var(--dq-color-primary-fg)",
-              fontWeight: 600,
-              borderRadius: 0,
-              cursor: "pointer",
-            }}
-            onClick={() => window.location.reload()}
-          >
-            Tải lại trang
-          </button>
-        </div>
+        <RemoteErrorFallback
+          moduleName={this.props.moduleName}
+          message={this.state.error.message}
+        />
       );
     }
     return this.props.children;

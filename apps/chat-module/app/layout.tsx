@@ -1,20 +1,25 @@
-import type { Metadata } from "next";
-import { Inter, Roboto_Mono } from "next/font/google";
+import { Be_Vietnam_Pro, Roboto_Mono } from "next/font/google";
 import "./globals.css";
-import { AppHeader, Layout } from "@tessera/shared-ui";
+import { AppHeader, Layout, LocaleToggle, ThemeScript, ThemeToggle } from "@tessera/shared-ui";
 
-const sans = Inter({
+// One modern grotesk for the product, one neutral mono for machine data.
+// Be Vietnam Pro is drawn for Vietnamese, which ships first here.
+const sans = Be_Vietnam_Pro({
   variable: "--font-app-sans",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext", "vietnamese"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 const mono = Roboto_Mono({
   variable: "--font-app-mono",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext", "vietnamese"],
+  weight: ["400", "500", "600"],
+  display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Chat — AI Agent UI",
+export const metadata = {
+  title: "Chat — Tessera",
   description: "Micro Frontend Chat/Prompt module (remote Module Federation) — UIT.SE.66",
 };
 
@@ -24,9 +29,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi">
-      <body className={`${sans.variable} ${mono.variable} antialiased`}>
-        <Layout header={<AppHeader />}>{children}</Layout>
+    <html lang="vi" suppressHydrationWarning className={`${sans.variable} ${mono.variable}`}>
+      <head>
+        <ThemeScript />
+      </head>
+      <body className="antialiased">
+        <Layout
+          header={
+            <AppHeader
+              actions={
+                <>
+                  <LocaleToggle />
+                  <ThemeToggle />
+                </>
+              }
+            />
+          }
+        >
+          {children}
+        </Layout>
       </body>
     </html>
   );

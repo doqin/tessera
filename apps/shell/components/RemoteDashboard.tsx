@@ -1,13 +1,16 @@
 "use client";
 
+import { useT } from "@tessera/shared-ui";
 import { loadDashboardRemote } from "./dashboardRemote";
+import { ModuleLoading } from "./ModuleLoading";
 import { RemoteModuleBoundary } from "./RemoteModuleBoundary";
 import { useRemoteComponent } from "./useRemoteComponent";
 
 function DashboardLoader() {
+  const t = useT();
   const DashboardModule = useRemoteComponent(loadDashboardRemote);
   if (!DashboardModule) {
-    return <p style={{ color: "var(--dq-color-muted)" }}>Đang tải Dashboard module…</p>;
+    return <ModuleLoading label={t("loading.dashboard")} />;
   }
   return <DashboardModule />;
 }

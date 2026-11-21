@@ -1,0 +1,457 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-21T17:05:00Z",
+  "title": "Design System: Tessera",
+  "extensions": {
+    "colorMeta": {
+      "signal-vermilion": {
+        "role": "primary",
+        "displayName": "Signal Vermilion",
+        "canonical": "#b4371c",
+        "tonalRamp": [
+          "color-mix(in oklch, #b4371c 40%, black)",
+          "color-mix(in oklch, #b4371c 60%, black)",
+          "color-mix(in oklch, #b4371c 80%, black)",
+          "#b4371c",
+          "color-mix(in oklch, #b4371c 80%, white)",
+          "color-mix(in oklch, #b4371c 60%, white)",
+          "color-mix(in oklch, #b4371c 40%, white)",
+          "color-mix(in oklch, #b4371c 20%, white)"
+        ]
+      },
+      "vermilion-soft": {
+        "role": "secondary",
+        "displayName": "Vermilion Soft",
+        "canonical": "#f6e3dd",
+        "tonalRamp": [
+          "color-mix(in oklch, #f6e3dd 40%, black)",
+          "color-mix(in oklch, #f6e3dd 60%, black)",
+          "color-mix(in oklch, #f6e3dd 80%, black)",
+          "#f6e3dd",
+          "color-mix(in oklch, #f6e3dd 80%, white)",
+          "color-mix(in oklch, #f6e3dd 60%, white)",
+          "color-mix(in oklch, #f6e3dd 40%, white)",
+          "color-mix(in oklch, #f6e3dd 20%, white)"
+        ]
+      },
+      "vermilion-ink": {
+        "role": "secondary",
+        "displayName": "Vermilion Ink",
+        "canonical": "#3a2a24",
+        "tonalRamp": [
+          "color-mix(in oklch, #3a2a24 40%, black)",
+          "color-mix(in oklch, #3a2a24 60%, black)",
+          "color-mix(in oklch, #3a2a24 80%, black)",
+          "#3a2a24",
+          "color-mix(in oklch, #3a2a24 80%, white)",
+          "color-mix(in oklch, #3a2a24 60%, white)",
+          "color-mix(in oklch, #3a2a24 40%, white)",
+          "color-mix(in oklch, #3a2a24 20%, white)"
+        ]
+      },
+      "on-accent": {
+        "role": "neutral",
+        "displayName": "On Accent",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "color-mix(in oklch, #ffffff 40%, black)",
+          "color-mix(in oklch, #ffffff 60%, black)",
+          "color-mix(in oklch, #ffffff 80%, black)",
+          "#ffffff",
+          "color-mix(in oklch, #ffffff 80%, white)",
+          "color-mix(in oklch, #ffffff 60%, white)",
+          "color-mix(in oklch, #ffffff 40%, white)",
+          "color-mix(in oklch, #ffffff 20%, white)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#14161a",
+        "tonalRamp": [
+          "color-mix(in oklch, #14161a 40%, black)",
+          "color-mix(in oklch, #14161a 60%, black)",
+          "color-mix(in oklch, #14161a 80%, black)",
+          "#14161a",
+          "color-mix(in oklch, #14161a 80%, white)",
+          "color-mix(in oklch, #14161a 60%, white)",
+          "color-mix(in oklch, #14161a 40%, white)",
+          "color-mix(in oklch, #14161a 20%, white)"
+        ]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Ink Muted",
+        "canonical": "#5b6270",
+        "tonalRamp": [
+          "color-mix(in oklch, #5b6270 40%, black)",
+          "color-mix(in oklch, #5b6270 60%, black)",
+          "color-mix(in oklch, #5b6270 80%, black)",
+          "#5b6270",
+          "color-mix(in oklch, #5b6270 80%, white)",
+          "color-mix(in oklch, #5b6270 60%, white)",
+          "color-mix(in oklch, #5b6270 40%, white)",
+          "color-mix(in oklch, #5b6270 20%, white)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#f6f7f8",
+        "tonalRamp": [
+          "color-mix(in oklch, #f6f7f8 40%, black)",
+          "color-mix(in oklch, #f6f7f8 60%, black)",
+          "color-mix(in oklch, #f6f7f8 80%, black)",
+          "#f6f7f8",
+          "color-mix(in oklch, #f6f7f8 80%, white)",
+          "color-mix(in oklch, #f6f7f8 60%, white)",
+          "color-mix(in oklch, #f6f7f8 40%, white)",
+          "color-mix(in oklch, #f6f7f8 20%, white)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "color-mix(in oklch, #ffffff 40%, black)",
+          "color-mix(in oklch, #ffffff 60%, black)",
+          "color-mix(in oklch, #ffffff 80%, black)",
+          "#ffffff",
+          "color-mix(in oklch, #ffffff 80%, white)",
+          "color-mix(in oklch, #ffffff 60%, white)",
+          "color-mix(in oklch, #ffffff 40%, white)",
+          "color-mix(in oklch, #ffffff 20%, white)"
+        ]
+      },
+      "surface-sunken": {
+        "role": "neutral",
+        "displayName": "Surface Sunken",
+        "canonical": "#f1f3f5",
+        "tonalRamp": [
+          "color-mix(in oklch, #f1f3f5 40%, black)",
+          "color-mix(in oklch, #f1f3f5 60%, black)",
+          "color-mix(in oklch, #f1f3f5 80%, black)",
+          "#f1f3f5",
+          "color-mix(in oklch, #f1f3f5 80%, white)",
+          "color-mix(in oklch, #f1f3f5 60%, white)",
+          "color-mix(in oklch, #f1f3f5 40%, white)",
+          "color-mix(in oklch, #f1f3f5 20%, white)"
+        ]
+      },
+      "surface-raised": {
+        "role": "neutral",
+        "displayName": "Surface Raised",
+        "canonical": "#e8ebef",
+        "tonalRamp": [
+          "color-mix(in oklch, #e8ebef 40%, black)",
+          "color-mix(in oklch, #e8ebef 60%, black)",
+          "color-mix(in oklch, #e8ebef 80%, black)",
+          "#e8ebef",
+          "color-mix(in oklch, #e8ebef 80%, white)",
+          "color-mix(in oklch, #e8ebef 60%, white)",
+          "color-mix(in oklch, #e8ebef 40%, white)",
+          "color-mix(in oklch, #e8ebef 20%, white)"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#e1e4e8",
+        "tonalRamp": [
+          "color-mix(in oklch, #e1e4e8 40%, black)",
+          "color-mix(in oklch, #e1e4e8 60%, black)",
+          "color-mix(in oklch, #e1e4e8 80%, black)",
+          "#e1e4e8",
+          "color-mix(in oklch, #e1e4e8 80%, white)",
+          "color-mix(in oklch, #e1e4e8 60%, white)",
+          "color-mix(in oklch, #e1e4e8 40%, white)",
+          "color-mix(in oklch, #e1e4e8 20%, white)"
+        ]
+      },
+      "emerald": {
+        "role": "tertiary",
+        "displayName": "Emerald",
+        "canonical": "#1f6f4a",
+        "tonalRamp": [
+          "color-mix(in oklch, #1f6f4a 40%, black)",
+          "color-mix(in oklch, #1f6f4a 60%, black)",
+          "color-mix(in oklch, #1f6f4a 80%, black)",
+          "#1f6f4a",
+          "color-mix(in oklch, #1f6f4a 80%, white)",
+          "color-mix(in oklch, #1f6f4a 60%, white)",
+          "color-mix(in oklch, #1f6f4a 40%, white)",
+          "color-mix(in oklch, #1f6f4a 20%, white)"
+        ]
+      },
+      "amber": {
+        "role": "tertiary",
+        "displayName": "Amber",
+        "canonical": "#8a5a12",
+        "tonalRamp": [
+          "color-mix(in oklch, #8a5a12 40%, black)",
+          "color-mix(in oklch, #8a5a12 60%, black)",
+          "color-mix(in oklch, #8a5a12 80%, black)",
+          "#8a5a12",
+          "color-mix(in oklch, #8a5a12 80%, white)",
+          "color-mix(in oklch, #8a5a12 60%, white)",
+          "color-mix(in oklch, #8a5a12 40%, white)",
+          "color-mix(in oklch, #8a5a12 20%, white)"
+        ]
+      },
+      "crimson": {
+        "role": "tertiary",
+        "displayName": "Crimson",
+        "canonical": "#b3261e",
+        "tonalRamp": [
+          "color-mix(in oklch, #b3261e 40%, black)",
+          "color-mix(in oklch, #b3261e 60%, black)",
+          "color-mix(in oklch, #b3261e 80%, black)",
+          "#b3261e",
+          "color-mix(in oklch, #b3261e 80%, white)",
+          "color-mix(in oklch, #b3261e 60%, white)",
+          "color-mix(in oklch, #b3261e 40%, white)",
+          "color-mix(in oklch, #b3261e 20%, white)"
+        ]
+      },
+      "crimson-ink": {
+        "role": "tertiary",
+        "displayName": "Crimson Ink",
+        "canonical": "#8f1d16",
+        "tonalRamp": [
+          "color-mix(in oklch, #8f1d16 40%, black)",
+          "color-mix(in oklch, #8f1d16 60%, black)",
+          "color-mix(in oklch, #8f1d16 80%, black)",
+          "#8f1d16",
+          "color-mix(in oklch, #8f1d16 80%, white)",
+          "color-mix(in oklch, #8f1d16 60%, white)",
+          "color-mix(in oklch, #8f1d16 40%, white)",
+          "color-mix(in oklch, #8f1d16 20%, white)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page titles only — one per screen, sentence case."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card and empty-state titles, chat header."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Messages, descriptions, prose."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Uppercase micro-labels on KPI, fields, nav groups."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Machine data only: routes, ids, durations, JSON, code."
+      }
+    },
+    "shadows": [
+      {
+        "name": "rest",
+        "value": "0 1px 2px rgb(15 23 42 / 6%)",
+        "purpose": "Default card, KPI tile, timeline container."
+      },
+      {
+        "name": "lift",
+        "value": "0 1px 2px rgb(15 23 42 / 5%), 0 8px 24px -12px rgb(15 23 42 / 12%)",
+        "purpose": "Chat surface and detail panel."
+      },
+      {
+        "name": "overlay",
+        "value": "0 24px 64px -24px rgb(15 23 42 / 28%), 0 2px 8px rgb(15 23 42 / 6%)",
+        "purpose": "Command palette only."
+      }
+    ],
+    "motion": [
+      {
+        "name": "standard",
+        "value": "cubic-bezier(0.2, 0.7, 0.3, 1)",
+        "purpose": "Every state transition."
+      },
+      {
+        "name": "fast",
+        "value": "140ms",
+        "purpose": "Overlay fade."
+      },
+      {
+        "name": "base",
+        "value": "160ms",
+        "purpose": "Hover, focus, colour and shadow shifts."
+      },
+      {
+        "name": "entrance",
+        "value": "220ms",
+        "purpose": "Message rise-in; disabled under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "dashboard-stack",
+        "value": "1100px"
+      },
+      {
+        "name": "rail-collapse",
+        "value": "900px"
+      },
+      {
+        "name": "compact",
+        "value": "640px"
+      }
+    ],
+    "themes": {
+      "light": {
+        "page": "#f6f7f8",
+        "surface": "#ffffff",
+        "fg": "#14161a",
+        "primary": "#b4371c"
+      },
+      "dark": {
+        "page": "#17181b",
+        "surface": "#1e1f23",
+        "fg": "#eef0f2",
+        "primary": "#e28663"
+      }
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single commitment action in a region — send, retry, reload.",
+      "html": "<button class=\"ds-btn-primary\">Gửi<span aria-hidden=\"true\">→</span></button>",
+      "css": ".ds-btn-primary {\n  display: inline-flex; align-items: center; gap: 8px;\n  padding: 8px 16px; border: 1px solid transparent; border-radius: var(--dq-radius, 10px);\n  background: var(--dq-color-primary, #b4371c); color: #fff;\n  font: 600 13px/1.4 Be Vietnam Pro, ui-sans-serif, system-ui, sans-serif;\n  cursor: pointer;\n  transition: background-color 160ms cubic-bezier(0.2,0.7,0.3,1), opacity 160ms;\n}\n.ds-btn-primary:hover { background: color-mix(in srgb, var(--dq-color-primary, #b4371c) 88%, #000); }\n.ds-btn-primary:focus-visible { outline: 2px solid var(--dq-color-focus, #e28663); outline-offset: 2px; }\n.ds-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Supporting actions: clear history, download, expand.",
+      "html": "<button class=\"ds-btn-secondary\">Xoá lịch sử</button>",
+      "css": ".ds-btn-secondary {\n  display: inline-flex; align-items: center; gap: 8px;\n  padding: 8px 16px; border: 1px solid var(--dq-color-border, #e1e4e8); border-radius: var(--dq-radius, 10px);\n  background: var(--ts-surface, #fff); color: var(--dq-color-fg, #14161a);\n  font: 600 13px/1.4 Be Vietnam Pro, ui-sans-serif, system-ui, sans-serif;\n  cursor: pointer; transition: background-color 160ms;\n}\n.ds-btn-secondary:hover { background: var(--ts-surface-3, #e8ebef); }\n.ds-btn-secondary:focus-visible { outline: 2px solid var(--dq-color-focus, #e28663); outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Search and composer field; indigo border plus ring on focus.",
+      "html": "<input class=\"ds-input\" placeholder=\"Tìm tool, tham số, kết quả…\" aria-label=\"Search\" />",
+      "css": ".ds-input {\n  width: 100%; padding: 9px 12px;\n  border: 1px solid var(--dq-color-border, #e1e4e8); border-radius: var(--dq-radius, 10px);\n  background: var(--ts-surface, #fff); color: var(--dq-color-fg, #14161a);\n  font: 400 15px/1.55 Be Vietnam Pro, ui-sans-serif, system-ui, sans-serif;\n  transition: border-color 160ms, box-shadow 160ms;\n}\n.ds-input::placeholder { color: var(--dq-color-muted, #5b6270); }\n.ds-input:focus-visible {\n  outline: none; border-color: var(--dq-color-primary, #b4371c);\n  box-shadow: 0 0 0 3px color-mix(in srgb, var(--dq-color-primary, #b4371c) 35%, transparent);\n}"
+    },
+    {
+      "name": "Nav Item",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Sidebar rail row with icon, label and muted description; active row is tinted indigo.",
+      "html": "<button class=\"ds-nav-item\" aria-current=\"page\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M21 11.5a8.4 8.4 0 0 1-9 8.4 9.5 9.5 0 0 1-3.3-.6L3 21l1.7-4.8A8.4 8.4 0 0 1 4 11.5a8.4 8.4 0 0 1 8.5-8.4 8.4 8.4 0 0 1 8.5 8.4Z\"/></svg><span class=\"ds-nav-text\">Chat<span class=\"ds-nav-desc\">Trò chuyện với agent</span></span></button>",
+      "css": ".ds-nav-item {\n  display: flex; align-items: center; gap: 12px; width: 100%;\n  padding: 9px 12px; border: 1px solid transparent; border-radius: var(--dq-radius, 10px);\n  background: transparent; color: var(--dq-color-muted, #5b6270);\n  font: 550 13px/1.4 Be Vietnam Pro, ui-sans-serif, system-ui, sans-serif;\n  text-align: left; cursor: pointer; transition: background-color 160ms, color 160ms;\n}\n.ds-nav-item:hover { background: var(--ts-surface-3, #e8ebef); color: var(--dq-color-fg, #14161a); }\n.ds-nav-item[aria-current=\"page\"] {\n  background: color-mix(in srgb, var(--dq-color-primary, #b4371c) 9%, transparent);\n  border-color: color-mix(in srgb, var(--dq-color-primary, #b4371c) 22%, transparent);\n  color: var(--dq-color-primary, #b4371c); font-weight: 650;\n}\n.ds-nav-text { display: flex; flex-direction: column; min-width: 0; }\n.ds-nav-desc { color: var(--dq-color-muted, #5b6270); font-size: 11px; font-weight: 450; }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "badge",
+      "refersTo": "badge",
+      "description": "Small status or model marker; tinted, fully rounded, never a button.",
+      "html": "<span class=\"ds-badge ds-badge--primary\">get_weather</span> <span class=\"ds-badge\">12:04</span>",
+      "css": ".ds-badge {\n  display: inline-flex; align-items: center; gap: 6px;\n  padding: 2px 8px; border: 1px solid var(--dq-color-border, #e1e4e8); border-radius: 999px;\n  background: var(--ts-surface-2, #f1f3f5); color: var(--dq-color-muted, #5b6270);\n  font: 600 11.5px/1.6 Be Vietnam Pro, ui-sans-serif, system-ui, sans-serif; white-space: nowrap;\n}\n.ds-badge--primary {\n  border-color: color-mix(in srgb, var(--dq-color-primary, #b4371c) 30%, transparent);\n  background: color-mix(in srgb, var(--dq-color-primary, #b4371c) 9%, transparent);\n  color: var(--dq-color-primary, #b4371c);\n}"
+    },
+    {
+      "name": "KPI Tile",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "One readout per tile: uppercase label, tabular figure, muted hint.",
+      "html": "<div class=\"ds-kpi\"><span class=\"ds-kpi-label\">Tỷ lệ thành công</span><span class=\"ds-kpi-value\">96%</span><span class=\"ds-kpi-hint\">24 thành công · 1 lỗi</span></div>",
+      "css": ".ds-kpi {\n  display: flex; flex-direction: column; gap: 2px;\n  padding: 16px; border: 1px solid var(--dq-color-border, #e1e4e8);\n  border-radius: 14px; background: var(--ts-surface, #fff);\n  box-shadow: 0 1px 2px rgb(15 23 42 / 6%);\n  font-family: Be Vietnam Pro, ui-sans-serif, system-ui, sans-serif;\n}\n.ds-kpi-label { color: var(--dq-color-muted, #5b6270); font-size: 11.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }\n.ds-kpi-value { color: var(--dq-color-fg, #14161a); font-size: 23px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.2; }\n.ds-kpi-hint { color: var(--dq-color-muted, #5b6270); font-size: 11.5px; }"
+    },
+    {
+      "name": "Chat Bubble",
+      "kind": "chat",
+      "refersTo": "chat-bubble-agent",
+      "description": "Agent and user message surfaces; the 4px speaker corner replaces any label.",
+      "html": "<div style=\"display:flex;flex-direction:column;gap:10px\"><div class=\"ds-bubble\"><div class=\"ds-bubble-meta\"><span>Agent</span><span>12:04</span></div>Đã gọi tool <code>get_weather</code>.</div><div class=\"ds-bubble ds-bubble--user\"><div class=\"ds-bubble-meta\"><span>Bạn</span><span>12:03</span></div>Thời tiết Hà Nội hôm nay thế nào?</div></div>",
+      "css": ".ds-bubble {\n  max-width: 78%; padding: 10px 14px;\n  border: 1px solid var(--dq-color-border, #e1e4e8); border-radius: 14px 14px 14px 4px;\n  background: var(--ts-surface-2, #f1f3f5); color: var(--dq-color-fg, #14161a);\n  font: 400 15px/1.55 Be Vietnam Pro, ui-sans-serif, system-ui, sans-serif;\n}\n.ds-bubble--user {\n  margin-left: auto; border-color: transparent; border-radius: 14px 14px 4px 14px;\n  background: var(--dq-color-primary, #b4371c); color: #fff;\n}\n.ds-bubble-meta { display: flex; gap: 8px; margin-bottom: 4px; color: var(--dq-color-muted, #5b6270); font-size: 11px; }\n.ds-bubble--user .ds-bubble-meta { color: rgb(255 255 255 / 78%); justify-content: flex-end; }"
+    },
+    {
+      "name": "Command Palette",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "Ctrl/Cmd+K surface: borderless input, grouped rows, one active row.",
+      "html": "<div class=\"ds-palette\"><input class=\"ds-palette-input\" placeholder=\"Nhập lệnh hoặc tìm kiếm…\" aria-label=\"Command palette\" /><div style=\"padding:8px\"><div class=\"ds-palette-group\">Điều hướng</div><button class=\"ds-palette-item\" data-active=\"true\">Dashboard</button><div class=\"ds-palette-group\">Thao tác</div><button class=\"ds-palette-item\">Đổi giao diện sáng/tối</button></div></div>",
+      "css": ".ds-palette {\n  width: 560px; max-width: 100%; overflow: hidden;\n  border: 1px solid var(--dq-color-border, #e1e4e8); border-radius: 16px;\n  background: var(--ts-surface, #fff);\n  box-shadow: 0 24px 64px -24px rgb(15 23 42 / 28%), 0 2px 8px rgb(15 23 42 / 6%);\n  font-family: Be Vietnam Pro, ui-sans-serif, system-ui, sans-serif;\n}\n.ds-palette-input {\n  width: 100%; padding: 16px 20px; border: 0; border-bottom: 1px solid var(--dq-color-border, #e1e4e8);\n  background: transparent; color: var(--dq-color-fg, #14161a);\n  font: 400 16px/1.5 Be Vietnam Pro, ui-sans-serif, system-ui, sans-serif; outline: none;\n}\n.ds-palette-group { padding: 8px 12px 4px; color: var(--dq-color-muted, #5b6270); font-size: 10.9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }\n.ds-palette-item {\n  display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px;\n  border: 0; border-radius: 10px; background: transparent; color: var(--dq-color-fg, #14161a);\n  font: 400 13px/1.4 Be Vietnam Pro, ui-sans-serif, system-ui, sans-serif; text-align: left; cursor: pointer;\n}\n.ds-palette-item:hover, .ds-palette-item[data-active=\"true\"] {\n  background: color-mix(in srgb, var(--dq-color-primary, #b4371c) 9%, transparent);\n  color: var(--dq-color-primary, #b4371c);\n}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The The Instrument",
+    "overview": "Tessera is an instrument for watching an agent work, so the interface borrows the material of a working notebook: warm paper, ink, a hairline rule between entries, and one vermilion signal that appears only when something happens. Every region answers a question the operator would ask mid-demo: where am I, what did the agent do, is it alive. The mood is quiet, precise, slightly archival; it must not read as a generic AI dashboard. The category-interchangeable test is the gate: remove the Vietnamese copy and the screenshot should still read as a console for observing an agent's tool calls. The ink status bar, the grotesk display voice, the mono readouts and the stacked architecture page keep it specific. Both themes are first-class and every token has a dark counterpart.",
+    "keyCharacteristics": [
+      "Warm paper + ink surfaces, hairline borders doing all the structural work; no gradients, no glass.",
+      "One vermilion signal accent; success/warning/danger appear only as small status marks.",
+      "Be Vietnam Pro for display, Be Vietnam Pro for UI, Roboto Mono for machine data.",
+      "Flat surfaces at rest; shadow only answers how far off the page something is.",
+      "Dense, readable readouts: tabular numerals, uppercase micro-labels, an ink status strip."
+    ],
+    "rules": [
+      {
+        "name": "The One Signal Rule",
+        "body": "Signal Vermilion covers at most ~10% of any screen: one primary button, one active nav item, one user bubble side, key figures. Its rarity is what makes it read as signal.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two-Theme Parity Rule",
+        "body": "Every colour used in a component resolves through a token with a dark counterpart. A raw hex inside a component is a defect.",
+        "section": "colors"
+      },
+      {
+        "name": "The Machine Data Rule",
+        "body": "Monospace is a signal, not a costume: if a human would read it aloud as a sentence, it is Be Vietnam Pro. Figures use tabular numerals so a KPI never jitters as it updates.",
+        "section": "typography"
+      },
+      {
+        "name": "The Border Does the Work Rule",
+        "body": "If a surface needs to be distinguished, give it a hairline before giving it a shadow. Shadows may only answer how far off the page something is, never what it is.",
+        "section": "elevation"
+      },
+      {
+        "name": "The 12 px Floor Rule",
+        "body": "Functional micro-text — labels, meta rows, keyboard hints, badges — never goes below 0.75 rem. It sits on tinted and paper surfaces, so a smaller size fails legibility long before it fails contrast.",
+        "section": "typography"
+      },
+      {
+        "name": "The No-Gradient Rule",
+        "body": "No gradient, no backdrop-filter, no dot-grid, no decorative texture. The only depth cue is a hairline; the only colour event is the signal.",
+        "section": "colors"
+      },
+      {
+        "name": "The Display Restraint Rule",
+        "body": "Serif is for page titles and the two architecture headings only. Tool names, KPI figures and buttons stay in Plex Sans; a serif on a control would read as decoration.",
+        "section": "typography"
+      }
+    ],
+    "dos": [
+      "Do express every colour through a token; if a value is needed in a component, add the token first (light + dark pair).",
+      "Do let the 1px hairline carry structure, then add the rest or lift shadow step.",
+      "Do keep Signal Vermilion for action and state, and keep it under ~10% of the screen.",
+      "Do set numbers in tabular figures and machine strings in Roboto Mono.",
+      "Do use sentence case for headings and titles, with -0.02em tracking on display only.",
+      "Do keep the status bar inside the first viewport (100dvh - header - status bar).",
+      "Do give destructive actions an in-place confirm step rather than acting on first click.",
+      "Do honour prefers-reduced-motion; motion is 140-220ms and decorative only."
+    ],
+    "donts": [
+      "Don't bring back the base library's hard 8px offset shadows or 0px radius — that look is the anti-reference.",
+      "Don't uppercase a page heading (dqcss's default h1 transform is overridden on purpose).",
+      "Don't introduce a second accent hue; success/warning/danger are status marks, not decoration.",
+      "Don't use monospace for sentences, labels, or buttons.",
+      "Don't put a gradient, blur or dot-grid anywhere. The brand mark is flat ink.",
+      "Don't stack two shadow steps on the same surface, or use shadow to signal hover.",
+      "Don't hard-code #fff/#000 in components; use Surface / On Accent / Ink.",
+      "Don't build page structure from equal-sized card grids; give the page one entry point."
+    ]
+  }
+}
