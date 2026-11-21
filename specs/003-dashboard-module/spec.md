@@ -1,6 +1,7 @@
 # Spec: Tool-Invocation/Dashboard Module (003-dashboard-module)
 
-- **Status:** Implementing — T001–T011 hoàn thành, còn T012–T016 (xem `tasks.md`)
+- **Status:** Implemented — T001–T016 hoàn thành; KPI/timeline/tìm kiếm bổ sung theo
+  `specs/004-ui-ux-redesign/spec.md`
 - **Liên quan:** UIT.SE.66-D3 §3, §7 (Tool-Invocation/Dashboard module), UIT.SE.66-D1 §4, UIT.SE.66-D2
   (Tech Stack), `specs/001-shell-app/spec.md` §9 (Clarify) và `specs/002-chat-module/plan.md` §2
   (mô hình remote Module Federation)
@@ -48,6 +49,12 @@ thao tác của Agent ngay trên UI — không phải chỉ nhìn vào log giao 
 - **FR6:** Không import code của Shell hay Chat module; chỉ dùng chung
   `packages/shared-ui` + `packages/integration-store` qua npm workspace. Module vẫn chạy được
   độc lập (dev/test riêng ở :3002).
+- **FR7 (004):** Module PHẢI hiển thị KPI tính từ `toolCallHistory` (tổng lượt gọi, tỷ lệ thành
+  công, độ trễ trung bình, số tool khác nhau), dòng thời gian các lượt gọi (mới nhất trước), lọc
+  theo trạng thái + tìm kiếm theo tên/tham số/kết quả, và panel chi tiết có sao chép JSON
+  (`specs/004-ui-ux-redesign/spec.md` FR7).
+- **FR8 (004):** Module PHẢI đọc `toolCallHistory`/`locale` từ Integration Layer, xoá lịch sử được
+  qua nút trên Dashboard, và giữ fallback khi store chỉ có `lastToolCall` (dữ liệu persist cũ).
 
 ## 4. Non-Functional Requirements
 
@@ -71,6 +78,12 @@ thao tác của Agent ngay trên UI — không phải chỉ nhìn vào log giao 
   render đúng trong vùng mount, header/sidebar giữ nguyên, không full page reload.
 - **AC5:** Given Unit test thực thi, when chạy, then ViewModel + View (MVVM) được test tách biệt,
   coverage ≥70% cho phần logic.
+- **AC6 (004):** Given đã có nhiều lượt gọi tool, when mở Dashboard, then KPI và dòng thời gian
+  khớp đúng số liệu lịch sử; chọn một mục thì panel chi tiết đổi theo.
+- **AC7 (004):** Given người dùng gõ từ khoá / chọn lọc "Lỗi", when render, then danh sách chỉ còn
+  các lượt gọi khớp.
+- **AC8 (004):** Given người dùng bấm "Xoá lịch sử", when xác nhận, then Dashboard về trạng thái
+  rỗng và `toolCallHistory` trong store rỗng.
 
 ## 6. Edge Cases (cần rà soát ở bước Clarify)
 

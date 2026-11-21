@@ -17,7 +17,7 @@ describe("Sidebar", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePathname.mockReturnValue("/chat");
-    useIntegrationStore.setState({ navState: { currentRoute: "/" } });
+    useIntegrationStore.setState({ navState: { currentRoute: "/" }, toolCallHistory: [] });
   });
 
   it("renders a nav link for Chat and Dashboard", () => {

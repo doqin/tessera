@@ -10,7 +10,7 @@ const sendPromptMock = sendPrompt as jest.MockedFunction<typeof sendPrompt>;
 describe("useChatViewModel", () => {
   beforeEach(() => {
     sendPromptMock.mockReset();
-    useIntegrationStore.setState({ lastToolCall: null });
+    useIntegrationStore.setState({ lastToolCall: null, toolCallHistory: [], chatTranscript: [] });
   });
 
   it("appends the user message immediately on submit", async () => {
@@ -63,7 +63,12 @@ describe("useChatViewModel", () => {
       await result.current.submitPrompt("gọi tool");
     });
 
-    expect(useIntegrationStore.getState().lastToolCall).toEqual(toolCall);
+    expect(useIntegrationStore.getState().lastToolCall).toMatchObject(toolCall);
+    expect(useIntegrationStore.getState().toolCallHistory).toHaveLength(1);
+    expect(useIntegrationStore.getState().toolCallHistory[0]).toMatchObject({
+      ...toolCall,
+      status: "success",
+    });
   });
 
   it("appends an error message and does not throw when chatService rejects", async () => {
@@ -162,5 +167,157 @@ describe("useChatViewModel", () => {
     expect(result.current.messages.map((m) => m.status)).toEqual(["sent", "sent", "error"]);
     expect(result.current.messages[1].content).toBe("dở dang");
     expect(result.current.isSending).toBe(false);
+  });
+
+  it("stop aborts the in-flight request and keeps the partial reply as interrupted", async () => {
+    sendPromptMock.mockImplementation(
+      (_prompt, options) =>
+        new Promise((_resolve, reject) => {
+          options?.onDelta?.("một nửa");
+          options?.signal?.addEventListener("abort", () =>
+            reject(new DOMException("aborted", "AbortError")),
+          );
+        }),
+    );
+    const { result } = renderHook(() => useChatViewModel());
+
+    let pending: Promise<void> = Promise.resolve();
+    await act(async () => {
+      pending = result.current.submitPrompt("hi");
+    });
+    expect(result.current.isSending).toBe(true);
+    expect(result.current.streamingId).toBe(result.current.messages[1]?.id);
+
+    act(() => result.current.stop());
+    await act(async () => {
+      await pending;
+    });
+
+    expect(result.current.messages[1]).toMatchObject({
+      content: "một nửa",
+      status: "interrupted",
+    });
+    expect(result.current.isSending).toBe(false);
+    expect(result.current.streamingId).toBeNull();
+  });
+
+  it("regenerate drops the selected reply and re-runs the preceding prompt without duplicating it", async () => {
+    sendPromptMock
+      .mockResolvedValueOnce({
+        message: { id: "a1", role: "agent", content: "lần 1", status: "sent", createdAt: "now" },
+      })
+      .mockResolvedValueOnce({
+        message: { id: "a2", role: "agent", content: "lần 2", status: "sent", createdAt: "now" },
+      });
+    const { result } = renderHook(() => useChatViewModel());
+
+    await act(async () => {
+      await result.current.submitPrompt("hỏi lại");
+    });
+    const firstReplyId = result.current.messages[1]?.id ?? "";
+
+    await act(async () => {
+      result.current.regenerate(firstReplyId);
+    });
+
+    await waitFor(() => {
+      expect(result.current.messages.at(-1)?.content).toBe("lần 2");
+    });
+    expect(result.current.messages.filter((message) => message.role === "user")).toHaveLength(1);
+    expect(sendPromptMock).toHaveBeenCalledTimes(2);
+    expect(sendPromptMock).toHaveBeenLastCalledWith("hỏi lại", expect.anything());
+  });
+
+  it("retry resends the prompt of an errored reply", async () => {
+    sendPromptMock.mockRejectedValueOnce(new Error("timeout")).mockResolvedValueOnce({
+      message: { id: "a1", role: "agent", content: "đã trả lời", status: "sent", createdAt: "now" },
+    });
+    const { result } = renderHook(() => useChatViewModel());
+
+    await act(async () => {
+      await result.current.submitPrompt("thử lại");
+    });
+    const errorId = result.current.messages.at(-1)?.id ?? "";
+
+    await act(async () => {
+      result.current.retry(errorId);
+    });
+
+    await waitFor(() => {
+      expect(result.current.messages.at(-1)?.content).toBe("đã trả lời");
+    });
+    expect(result.current.messages.some((message) => message.status === "error")).toBe(false);
+  });
+
+  it("restores the transcript from the integration store on mount", () => {
+    const stored = [
+      {
+        id: "m1",
+        role: "user" as const,
+        content: "tin cũ",
+        status: "sent" as const,
+        createdAt: "now",
+      },
+    ];
+    useIntegrationStore.setState({ chatTranscript: stored });
+
+    const { result } = renderHook(() => useChatViewModel());
+
+    expect(result.current.messages).toEqual(stored);
+  });
+
+  it("writes the transcript back to the integration store after a reply", async () => {
+    sendPromptMock.mockResolvedValue({
+      message: { id: "a1", role: "agent", content: "ok", status: "sent", createdAt: "now" },
+    });
+    const { result } = renderHook(() => useChatViewModel());
+
+    await act(async () => {
+      await result.current.submitPrompt("hỏi");
+    });
+
+    await waitFor(() => {
+      expect(useIntegrationStore.getState().chatTranscript).toHaveLength(2);
+    });
+    expect(useIntegrationStore.getState().chatTranscript[0]).toMatchObject({
+      role: "user",
+      content: "hỏi",
+    });
+  });
+
+  it("clearConversation empties both the local list and the store", async () => {
+    sendPromptMock.mockResolvedValue({
+      message: { id: "a1", role: "agent", content: "ok", status: "sent", createdAt: "now" },
+    });
+    const { result } = renderHook(() => useChatViewModel());
+
+    await act(async () => {
+      await result.current.submitPrompt("hỏi");
+    });
+    await waitFor(() => {
+      expect(useIntegrationStore.getState().chatTranscript).toHaveLength(2);
+    });
+
+    act(() => {
+      result.current.clearConversation();
+    });
+
+    expect(result.current.messages).toHaveLength(0);
+    expect(useIntegrationStore.getState().chatTranscript).toHaveLength(0);
+  });
+
+  it("ignores regenerate/retry for unknown message ids", async () => {
+    sendPromptMock.mockResolvedValue({
+      message: { id: "a1", role: "agent", content: "ok", status: "sent", createdAt: "now" },
+    });
+    const { result } = renderHook(() => useChatViewModel());
+
+    await act(async () => {
+      result.current.regenerate("unknown");
+      result.current.retry("unknown");
+    });
+
+    expect(sendPromptMock).not.toHaveBeenCalled();
+    expect(result.current.messages).toHaveLength(0);
   });
 });

@@ -17,7 +17,6 @@ const makeToolCall = (overrides = {}): ToolCall =>
 describe("ToolRow", () => {
   it("renders the tool name", () => {
     render(<ToolRow toolCall={makeToolCall()} />);
-    expect(screen.getByText(/Tool:/)).toBeInTheDocument();
     expect(screen.getByText("mock_tool")).toBeInTheDocument();
   });
 

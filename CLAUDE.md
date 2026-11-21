@@ -44,6 +44,7 @@ specs/                      # Spec Kit — 1 thư mục / 1 module, chứa spec.
   001-shell-app/
   002-chat-module/
   003-dashboard-module/
+  004-ui-ux-redesign/        # giao diện + tính năng trình diễn (báo cáo)
 apps/                       # Next.js apps độc lập (shell, chat-module, dashboard-module) — D2
 packages/shared-ui/         # Design system dùng chung (dqcss — `@doqin/dqcss`)
 tools/llm-trial/            # Script thử kết nối LLM API bằng dữ liệu mẫu
@@ -67,8 +68,8 @@ e2e/                        # E2E Playwright: Shell nạp remote thật, điều
   làm hỏng `@module-federation/enhanced`), `styled-jsx@5.1.1`. Nâng bản nào cũng phải build lại cả
   2 app và kiểm bằng browser thật.
 - Next.js 13.5 chỉ nhận `next.config.js` (CJS) — không dùng `.ts`/`.mjs`
-  . Font dùng `Inter`/`Roboto_Mono`
-  (không có Geist).
+  . Font dùng `Be_Vietnam_Pro` (display + UI) / `Roboto_Mono` (dữ liệu)
+  (không có Geist). Cả hai đều có subset `vietnamese`; khai báo class font trên `<html>`.
 - `nextjs-mf` chính thức không hỗ trợ App Router; `next.config.js` của 2 app có workaround (bỏ
   guard `appDirEnabled` tạm thời, federation chỉ ở client compiler, chia sẻ React vendored của
   Next). Remote chỉ render phía client (`next/dynamic` + `ssr: false`), không SSR.

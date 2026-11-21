@@ -39,3 +39,10 @@ Thumbs.db
 # Playwright
 test-results/
 playwright-report/
+
+# Impeccable tooling — runtime state and per-app generated reports
+**/.impeccable/live/
+**/.impeccable/hook.cache.json
+**/.impeccable/hook.pending.json
+**/.impeccable/config.local.json
+**/.impeccable/audit/

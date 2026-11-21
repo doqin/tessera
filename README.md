@@ -28,12 +28,26 @@ specs/                      # Spec Kit — 1 thư mục / 1 module
   001-shell-app/spec.md
   002-chat-module/spec.md
   003-dashboard-module/
+  004-ui-ux-redesign/       # giao diện & tính năng trình diễn cho báo cáo
 apps/                       # Next.js apps độc lập (shell, chat-module, dashboard-module)
 packages/shared-ui/         # Design system dùng chung (dqcss — `@doqin/dqcss`)
 tools/llm-trial/            # Script thử kết nối LLM API bằng dữ liệu mẫu
 docs/reference/             # Project Charter, D1–D3, Tech Stack
 tests/                      # Integration test giữa shell và module
 ```
+
+## Giao diện (spec 004)
+
+- **Sáng/tối** và **VI/EN** ở trang `/settings`; lựa chọn được lưu và áp cho cả Shell lẫn remote
+  (qua Integration Layer, không cần reload).
+- **Ctrl/Cmd+K** hoặc ô tìm kiếm giữa top bar mở command palette: điều hướng, đổi theme, đổi ngôn
+  ngữ, xoá lịch sử tool.
+- **Chat**: gợi ý prompt, render Markdown (đậm/code/danh sách/link), sao chép – tạo lại – thử lại,
+  dừng stream, timestamp + thời gian xử lý + badge tool, kết quả tool hiện ngay trong transcript và
+  xuất hội thoại ra `.md`.
+- **Dashboard**: KPI (lượt gọi, tỷ lệ thành công, độ trễ TB, số tool), timeline, tìm kiếm/lọc,
+  panel chi tiết có sao chép JSON.
+- **/overview**: sơ đồ kiến trúc 3 lớp + luồng Chat → store → Dashboard, dùng cho phần thuyết trình.
 
 ## Tech Stack đã chốt
 

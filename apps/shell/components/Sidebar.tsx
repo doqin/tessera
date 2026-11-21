@@ -3,13 +3,34 @@
 import { useEffect, type ComponentProps } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AppNav, SidebarPanel, type AppNavItem } from "@tessera/shared-ui";
 import { useIntegrationStore } from "@tessera/integration-store";
+import {
+  AppNav,
+  SidebarPanel,
+  useSidebarState,
+  useT,
+  type AppNavItem,
+  type IconName,
+} from "@tessera/shared-ui";
+import type { TranslationKey } from "@tessera/shared-ui";
 import { loadDashboardRemote } from "./dashboardRemote";
 
-const NAV_ITEMS: AppNavItem[] = [
-  { href: "/chat", label: "Chat" },
-  { href: "/dashboard", label: "Dashboard" },
+interface NavDefinition {
+  href: string;
+  labelKey: TranslationKey;
+  descKey: TranslationKey;
+  icon: IconName;
+}
+
+const NAV_DEFINITIONS: NavDefinition[] = [
+  { href: "/chat", labelKey: "nav.chat", descKey: "nav.chatDesc", icon: "chat" },
+  {
+    href: "/dashboard",
+    labelKey: "nav.dashboard",
+    descKey: "nav.dashboardDesc",
+    icon: "dashboard",
+  },
+  { href: "/overview", labelKey: "nav.overview", descKey: "nav.overviewDesc", icon: "layers" },
 ];
 
 /**
@@ -29,16 +50,26 @@ function PrefetchLink(props: ComponentProps<typeof Link>) {
 }
 
 export function Sidebar() {
+  const t = useT();
   const pathname = usePathname();
   const setNavState = useIntegrationStore((state) => state.setNavState);
+  const { closeMobile } = useSidebarState();
 
   useEffect(() => {
     setNavState(pathname);
-  }, [pathname, setNavState]);
+    closeMobile();
+  }, [pathname, setNavState, closeMobile]);
+
+  const items: AppNavItem[] = NAV_DEFINITIONS.map((definition) => ({
+    href: definition.href,
+    label: t(definition.labelKey),
+    description: t(definition.descKey),
+    icon: definition.icon,
+  }));
 
   return (
     <SidebarPanel>
-      <AppNav items={NAV_ITEMS} activeHref={pathname} LinkComponent={PrefetchLink} />
+      <AppNav items={items} activeHref={pathname} LinkComponent={PrefetchLink} />
     </SidebarPanel>
   );
 }

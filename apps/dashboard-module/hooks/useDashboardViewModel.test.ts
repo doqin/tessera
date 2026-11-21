@@ -13,7 +13,7 @@ const makeToolCall = (overrides = {}) => ({
 
 describe("useDashboardViewModel", () => {
   beforeEach(() => {
-    useIntegrationStore.setState({ lastToolCall: null });
+    useIntegrationStore.setState({ lastToolCall: null, toolCallHistory: [] });
   });
 
   it("initializes with the store's lastToolCall", () => {

@@ -1,10 +1,10 @@
-export type MessageRole = "user" | "agent";
-export type MessageStatus = "sent" | "error" | "interrupted";
+import type { ChatMessage, ChatMessageStatus, ChatRole } from "@tessera/integration-store";
 
-export interface Message {
-  id: string;
-  role: MessageRole;
-  content: string;
-  status: MessageStatus;
-  createdAt: string;
-}
+export type MessageRole = ChatRole;
+export type MessageStatus = ChatMessageStatus;
+
+/**
+ * Message của Chat module. Kiểu thật nằm ở Integration Layer (`ChatMessage`) vì transcript được
+ * giữ trong store dùng chung để sống sót khi remote bị unmount (specs/002 §9).
+ */
+export type Message = ChatMessage;

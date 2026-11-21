@@ -92,6 +92,24 @@ function accumulateToolCalls(pending: Map<number, PendingToolCall>, deltas: Tool
   });
 }
 
+/** Câu trả lời đọc được khi model chỉ gọi tool mà không viết text — dựa trên kết quả thật. */
+export function describeToolResult(toolCall: ToolCall): string {
+  const result = toolCall.result as Record<string, unknown> | undefined;
+  if (result && typeof result === "object" && !Array.isArray(result)) {
+    const city = typeof result.city === "string" ? result.city : undefined;
+    const temperatureC = typeof result.temperatureC === "number" ? result.temperatureC : undefined;
+    if (city && temperatureC !== undefined) {
+      const condition =
+        typeof result.condition === "string" ? `, ${result.condition.toLowerCase()}` : "";
+      return `${city} hiện ${temperatureC}°C${condition}.`;
+    }
+  }
+  if (Array.isArray(toolCall.result)) {
+    return `Tìm thấy ${toolCall.result.length} kết quả cho "${String(toolCall.params.query ?? "")}".`;
+  }
+  return `Đã chạy ${toolCall.name}.`;
+}
+
 /**
  * Chạy tool mẫu cho tool-call cuối hợp lệ (store chỉ lưu `lastToolCall`). Tool lạ hoặc
  * `arguments` không phải JSON object → bỏ qua (spec §9).
@@ -220,7 +238,7 @@ export async function sendPrompt(
   const now = new Date().toISOString();
   const toolCall = interrupted ? undefined : resolveToolCall(pendingToolCalls, now);
   // Model chỉ gọi tool mà không trả text: tránh bong bóng chat rỗng.
-  const text = content || (toolCall ? `Đã gọi tool ${toolCall.name}.` : "");
+  const text = content || (toolCall ? describeToolResult(toolCall) : "");
 
   return {
     message: {
