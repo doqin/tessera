@@ -1,7 +1,8 @@
 # Spec: Chat/Prompt Module (002-chat-module)
 
-- **Status:** Implemented (foundation, mock service) — remote Module Federation trên Next.js
-  13.5.11, xem §11 và `specs/001-shell-app/spec.md` §11
+- **Status:** Implemented — remote Module Federation trên Next.js 13.5.11, stream thật qua Groq
+  proxy, 2 tool mẫu; UX trình diễn theo `specs/004-ui-ux-redesign/spec.md` (xem §11 và
+  `specs/001-shell-app/spec.md` §11)
 - **Liên quan:** UIT.SE.66-D3 §3–4 (Chat/Prompt module, luồng runtime), UIT.SE.66-D1 §4,
   UIT.SE.66-D2 (Tech Stack, AI integration)
 
@@ -41,6 +42,13 @@ prompt và xem phản hồi streaming, bao gồm cả khi Agent gọi tool.
   `./ChatModule`), không phụ thuộc trực tiếp vào internal của Shell hay Dashboard module — chỉ dùng
   chung `packages/shared-ui` và `packages/integration-store` qua npm workspace. Module vẫn chạy được
   độc lập (dev/test riêng).
+- **FR6 (004):** Module PHẢI có trạng thái rỗng kèm gợi ý bấm được, render Markdown tối giản cho
+  phản hồi agent (không `dangerouslySetInnerHTML`), thao tác sao chép/tạo lại/thử lại trên từng
+  message, nút dừng khi đang stream, timestamp + thời gian xử lý + badge tool, và ô nhập hỗ trợ
+  Enter gửi / Shift+Enter xuống dòng + đếm ký tự (`specs/004-ui-ux-redesign/spec.md` FR6).
+- **FR7 (004, sửa sau critique):** Transcript PHẢI sống sót khi remote bị unmount (điều hướng sang
+  route khác rồi quay lại), bằng cách giữ `chatTranscript` trong Integration Layer; PHẢI có hành động
+  "Cuộc trò chuyện mới" để xoá transcript một cách chủ động.
 
 ## 4. Non-Functional Requirements
 
@@ -62,6 +70,12 @@ prompt và xem phản hồi streaming, bao gồm cả khi Agent gọi tool.
   module mà Shell không cần import internal của module.
 - **AC5:** Given chạy Unit test, when thực thi, then View và ViewModel (MVVM, D3 §6) được test
   tách biệt, đạt coverage ≥70%.
+- **AC6 (004):** Given chưa có message, when người dùng bấm một gợi ý, then prompt đó được gửi và
+  phản hồi stream hiện dần.
+- **AC7 (004):** Given phản hồi agent chứa Markdown, when render, then thấy đúng đậm/code/danh sách
+  và không thấy ký tự đánh dấu thô.
+- **AC8 (004):** Given đang stream, when người dùng bấm Dừng, then phần đã nhận được giữ lại với
+  trạng thái "bị ngắt" và không ghi `lastToolCall` cho lượt đó.
 
 ## 6. Edge Cases (cần rà soát ở bước Clarify)
 
@@ -97,6 +111,12 @@ spec này qua Clarify + Checklist. `plan.md` và `tasks.md` đã có trong thư 
 - **Response streaming bị ngắt giữa chừng (network drop):** Hiển thị phần đã nhận được của message
   (partial content) kèm chỉ báo nhỏ "phản hồi bị ngắt" thay vì xoá mất nội dung đã stream — không
   tự động resume (ngoài phạm vi PoC).
+
+- **Transcript khi rời route (sau critique):** Chat remote bị unmount khi Shell chuyển sang
+  `/dashboard`, nên message list cục bộ sẽ mất. Transcript được mirror vào `chatTranscript` trong
+  `@tessera/integration-store` (debounce 300 ms + flush khi unmount, tối đa 200 message) và khôi
+  phục ở lần mount sau; "Cuộc trò chuyện mới" xoá cả hai nơi. Không phải lịch sử bền vững — vẫn nằm
+  trong phiên và localStorage của trình duyệt (Exclusions của spec không đổi).
 
 - **Tool-call thật (T016):** PoC định nghĩa 2 tool mẫu, chỉ trả dữ liệu giả (NFR7): `get_weather`
   (`{ city: string }` → object `{ city, temperatureC, condition }`) và `search_docs`

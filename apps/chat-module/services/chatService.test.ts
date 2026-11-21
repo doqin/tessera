@@ -93,7 +93,7 @@ describe("chatService.sendPrompt", () => {
         params: { city: "Huế" },
         result: { city: "Huế", temperatureC: 28, condition: "Nhiều mây" },
       });
-      expect(message).toMatchObject({ status: "sent", content: "Đã gọi tool get_weather." });
+      expect(message).toMatchObject({ status: "sent", content: "Huế hiện 28°C, nhiều mây." });
     });
 
     it("keeps the model text and uses the last valid call when there are several", async () => {

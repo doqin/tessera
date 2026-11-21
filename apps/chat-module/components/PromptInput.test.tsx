@@ -30,4 +30,33 @@ describe("PromptInput", () => {
     expect(screen.getByRole("button", { name: "Gửi" })).toBeDisabled();
     expect(handleSubmit).not.toHaveBeenCalled();
   });
+
+  it("submits with Enter and keeps a newline with Shift+Enter", async () => {
+    const user = userEvent.setup();
+    const handleSubmit = jest.fn();
+    render(<PromptInput onSubmit={handleSubmit} />);
+    const input = screen.getByLabelText("Prompt");
+
+    await user.type(input, "dòng một{Shift>}{Enter}{/Shift}dòng hai");
+    expect(input).toHaveValue("dòng một\ndòng hai");
+
+    await user.keyboard("{Enter}");
+    expect(handleSubmit).toHaveBeenCalledWith("dòng một\ndòng hai");
+  });
+
+  it("shows the stop button while sending and calls onStop", async () => {
+    const user = userEvent.setup();
+    const onStop = jest.fn();
+    render(<PromptInput onSubmit={jest.fn()} onStop={onStop} isSending />);
+
+    await user.click(screen.getByRole("button", { name: "Dừng" }));
+    expect(onStop).toHaveBeenCalled();
+  });
+
+  it("shows the character counter", async () => {
+    const user = userEvent.setup();
+    render(<PromptInput onSubmit={jest.fn()} maxLength={100} />);
+    await user.type(screen.getByLabelText("Prompt"), "abc");
+    expect(screen.getByText("3/100")).toBeInTheDocument();
+  });
 });
