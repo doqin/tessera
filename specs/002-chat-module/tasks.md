@@ -51,11 +51,17 @@ Nguồn: `plan.md`. `[x]` = đã thực hiện (phiên "D2 Foundation Setup" và
 - [x] **T014** Xử lý lỗi/timeout thật (15s, Clarify §9) — hiển thị message lỗi trong danh sách.
       _(`chatService.sendPrompt`: timeout 15s theo kiểu "không có dữ liệu mới" (đặt lại mỗi chunk),
       ném `ChatTimeoutError`; `useChatViewModel` thêm message `status: "error"`. **Groq thật
-      2026-11-21**: nhánh thành công đi qua đường thật (không mock); nhánh timeout mới chỉ có unit
-      test — chưa dựng được upstream treo >15s để đo end-to-end.)_
+      2026-11-21**: nhánh thành công đi qua đường thật (không mock). **Timeout 2026-11-21** (kiểm
+      end-to-end bằng upstream treo thật: server SSE trả header 200 + `text/event-stream` rồi im lặng
+      hoàn toàn, browser trỏ `NEXT_PUBLIC_CHAT_API_URL` vào đó): bong bóng lỗi hiện sau **15,71 s**
+      với "Không nhận được phản hồi, thử lại." + "Lỗi/timeout — thử gửi lại."; store **không** bị ghi
+      (`lastToolCall` cũ giữ nguyên); gửi lại prompt bình thường sau đó vẫn chạy và cập nhật dashboard
+      sau 0,76 s → timer/abort được dọn sạch.)_
 - [x] **T015** Xử lý streaming bị ngắt giữa chừng (Clarify §9) — giữ partial content + chỉ báo.
       _(Lỗi mạng/timeout/đóng stream thiếu `[DONE]`/`finish_reason` khi đã có nội dung → message
-      `status: "interrupted"` (`MessageBubble` hiện chỉ báo), không ghi `lastToolCall`; chưa có nội dung → reject.)_
+      `status: "interrupted"` (`MessageBubble` hiện chỉ báo), không ghi `lastToolCall`; chưa có nội dung → reject.
+      **Kiểm end-to-end 2026-11-21** (upstream treo thật, xem T014): stream nhận 1 chunk rồi im lặng →
+      sau **16,18 s** giữ nguyên "Đây là phần đầu" + "Phản hồi bị ngắt giữa chừng.", store không đổi.)_
 - [x] **T016** Tool-call detection thật từ response Groq (không còn mock `toolCall` cố định) →
       `integrationStore.setLastToolCall`. _(2 tool mẫu `get_weather`/`search_docs` trong
       `services/tools.ts`; proxy gửi `tools`; `chatService` gom `delta.tool_calls`, chạy tool giả,
