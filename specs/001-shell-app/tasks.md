@@ -108,6 +108,18 @@ Next.js 13.5.11 + Module Federation — xem `docs/findings/R2-module-federation-
         parse xong JS — ước tính bớt ~1,5–1,8 s, LCP về ~2,5–3 s. (2) Giảm bundle `remoteEntry.js`
         hoặc tách phần UI tĩnh của Chat để Shell SSR. (3) Không dùng cách "skeleton to hơn nội dung
         thật": LCP lấy mốc lớn nhất cuối cùng, skeleton chỉ thắng nếu lớn hơn khối nội dung cuối.
-      - **Lưu ý cache.** `remoteEntry.js` luôn được tải kèm `?t=<timestamp>` nên trình duyệt không giữ bản cũ dù
-        Vercel gắn `Cache-Control: immutable`; cấu hình `headers()` trong `next.config.js` và
+      - **Đã làm (1) — PR #22.** `?t=` trước đây do nextjs-mf nối bằng `Date.now()` lúc chạy nên mỗi
+        lần nạp trang lại tải lại 406 KB, và URL không biết trước nên không preload được. Nay `?t=`
+        chốt theo lúc build Shell (`NEXT_PUBLIC_REMOTE_ENTRY_TS` để đè), mỗi route phát
+        `preconnect`/`dns-prefetch`/`preload as="script"` cho `remoteEntry.js` của chính nó
+        (`RemotePreload`). Đo trên bản build production chạy `next start` (remote vẫn tải từ Vercel
+        thật, cùng thông số Lighthouse mobile): `remoteEntry.js` bắt đầu **31 ms** (trước 1,6–2,0 s),
+        xong 0,77 s; LCP **3,37 / 3,48 / 3,55 s**, điểm **90 / 91 / 92**, TBT 57–112 ms — so với
+        4,32–4,74 s và 70–78 trên production hiện tại. **Vẫn chưa đạt <3 s**: sau khi tải xong
+        (0,77 s) còn ~2,2 s parse/khởi tạo `remoteEntry.js` (406 KB) + mount remote dưới CPU 4× —
+        đòn tiếp theo là giảm kích thước `remoteEntry.js` hoặc tách UI tĩnh của Chat ra khỏi remote.
+        Con số production chốt lại sau khi merge (preview Vercel đang bật SSO nên không đo được).
+      - **Lưu ý cache.** `?t=` là mốc build Shell (PR #22) nên trong cùng một bản deploy trình duyệt dùng
+        lại `remoteEntry.js` đã tải; mỗi lần deploy Shell đổi `t` nên không giữ bản cũ. Vercel vẫn gắn
+        `Cache-Control: immutable` cho `/_next/static`; cấu hình `headers()` trong `next.config.js` và
         `vercel.json` đều không đổi được header này trên Vercel (đã thử trên preview).
