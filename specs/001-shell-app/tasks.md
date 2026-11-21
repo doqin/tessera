@@ -88,7 +88,7 @@ Next.js 13.5.11 + Module Federation — xem `docs/findings/R2-module-federation-
         hiện: có hover trước (remote đã prefetch) ≈ 7–18 ms; không hover (remote chưa nạp), 8 lần:
         157–344 ms, trung vị ≈ 210 ms, 2/8 lần ≥300 ms (344, 300) vì phải tải `remoteEntry.js`.
         E2E `e2e/shell.spec.ts` khoá ngưỡng <300 ms cho trường hợp đã prefetch.
-      - **NFR1/NFR3 đo lại 2026-11-21** (Lighthouse 13.6.0, Chromium, mobile mô phỏng mặc định, 3
+      - **NFR1/NFR3 baseline trước khi sửa (2026-11-21)** (Lighthouse 13.6.0, Chromium, mobile mô phỏng mặc định, 3
         lần/trang — mạng 1.6 Mbps / 150 ms RTT / CPU 4×): `/chat` Performance **78 / 78 / 70**, LCP
         **4,54 / 4,32 / 4,74 s**, FCP 1,45 / 1,23 / 1,54 s, TBT 222 / 323 / 421 ms, CLS 0;
         `/dashboard` **94 / 93 / 86**, LCP **1,11 / 0,90 / 0,92 s**, TBT 254 / 308 / 560 ms, CLS 0.
@@ -118,7 +118,12 @@ Next.js 13.5.11 + Module Federation — xem `docs/findings/R2-module-federation-
         4,32–4,74 s và 70–78 trên production hiện tại. **Vẫn chưa đạt <3 s**: sau khi tải xong
         (0,77 s) còn ~2,2 s parse/khởi tạo `remoteEntry.js` (406 KB) + mount remote dưới CPU 4× —
         đòn tiếp theo là giảm kích thước `remoteEntry.js` hoặc tách UI tĩnh của Chat ra khỏi remote.
-        Con số production chốt lại sau khi merge (preview Vercel đang bật SSO nên không đo được).
+      - **Production sau khi merge #22 (đo lại 2026-11-21, cùng máy/cùng thông số).** `/chat`: điểm
+        **93 / 93 / 92**, LCP **3,22 / 3,21 / 3,34 s**, FCP 0,80–0,91 s, TBT 50–75 ms, SI 1,09–1,86 s;
+        `/dashboard`: **99 / 100 / 100**, LCP 0,85 / 0,91 / 1,37 s. `remoteEntry.js` bắt đầu ở
+        0,13–0,44 s (trước 1,6–2,0 s) và tải xong 0,73–1,43 s. → **NFR3 (≥80) đạt ở cả hai route**;
+        **NFR1 (<3 s) vẫn hụt ~0,2–0,35 s trên `/chat`** — phần còn lại là ~1,8 s render delay sau khi
+        entry về (parse 406 KB + mount remote dưới CPU 4×), không phải mạng.
       - **Lưu ý cache.** `?t=` là mốc build Shell (PR #22) nên trong cùng một bản deploy trình duyệt dùng
         lại `remoteEntry.js` đã tải; mỗi lần deploy Shell đổi `t` nên không giữ bản cũ. Vercel vẫn gắn
         `Cache-Control: immutable` cho `/_next/static`; cấu hình `headers()` trong `next.config.js` và
